@@ -1,0 +1,107 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/debt_model.dart';
+import '../../../core/services/firebase_service.dart';
+
+class DebtService {
+  final CollectionReference _debtsCollection =
+      FirebaseService.firestore.collection('debts');
+
+  Future<void> addDebt(DebtModel debt) async {
+    await _debtsCollection.doc(debt.id).set(debt.toFirestore());
+  }
+
+  Future<void> updateDebt(DebtModel debt) async {
+    await _debtsCollection.doc(debt.id).update(debt.toFirestore());
+  }
+
+  Future<void> deleteDebt(String debtId) async {
+    await _debtsCollection.doc(debtId).delete();
+  }
+
+  Future<void> makePayment(String debtId, double amount) async {
+    final doc = await _debtsCollection.doc(debtId).get();
+    final debt = DebtModel.fromFirestore(doc);
+
+    final newPaidAmount = debt.paidAmount + amount;
+    final newRemaining = debt.amount - newPaidAmount;
+
+    String newStatus;
+    if (newRemaining <= 0) {
+      newStatus = 'lunas';
+    } else if (newPaidAmount > 0) {
+      newStatus = 'sebagian';
+    } else {
+      newStatus = 'belum_lunas';
+    }
+
+    await _debtsCollection.doc(debtId).update({
+      'paidAmount': newPaidAmount,
+      'remainingAmount': newRemaining < 0 ? 0 : newRemaining,
+      'status': newStatus,
+    });
+  }
+
+  Stream<List<DebtModel>> getDebts(String workspaceId) {
+    return _debtsCollection
+        .where('workspaceId', isEqualTo: workspaceId)
+        .orderBy('dueDate', descending: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => DebtModel.fromFirestore(doc))
+            .toList());
+  }
+
+  Stream<List<DebtModel>> getActiveDebts(String workspaceId) {
+    return _debtsCollection
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('status', isNotEqualTo: 'lunas')
+        .orderBy('dueDate')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => DebtModel.fromFirestore(doc))
+            .toList());
+  }
+
+  Future<double> getTotalDebt(String workspaceId) async {
+    final query = await _debtsCollection
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('status', isNotEqualTo: 'lunas')
+        .get();
+
+    double total = 0;
+    for (final doc in query.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      total += (data['remainingAmount'] ?? 0).toDouble();
+    }
+    return total;
+  }
+
+  Future<List<DebtModel>> getOverdueDebts(String workspaceId) async {
+    final query = await _debtsCollection
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('status', isNotEqualTo: 'lunas')
+        .get();
+
+    final now = DateTime.now();
+    return query.docs
+        .map((doc) => DebtModel.fromFirestore(doc))
+        .where((debt) => debt.dueDate.isBefore(now))
+        .toList();
+  }
+
+  Future<List<DebtModel>> getUpcomingDebts(String workspaceId, int days) async {
+    final now = DateTime.now();
+    final futureDate = now.add(Duration(days: days));
+
+    final query = await _debtsCollection
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('status', isNotEqualTo: 'lunas')
+        .get();
+
+    return query.docs
+        .map((doc) => DebtModel.fromFirestore(doc))
+        .where((debt) =>
+            debt.dueDate.isAfter(now) && debt.dueDate.isBefore(futureDate))
+        .toList();
+  }
+}
