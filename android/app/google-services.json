@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "596704563568",
+    "project_id": "buku-cuan-69d6f",
+    "storage_bucket": "buku-cuan-69d6f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:596704563568:android:02e9b260688ab0a0143fb5",
+        "android_client_info": {
+          "package_name": "com.example.buku_cuan_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY8bJhkcOESW-nKMAQKdbvYITbs_K7h2Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
