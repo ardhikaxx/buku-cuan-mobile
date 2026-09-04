@@ -149,12 +149,14 @@ class _CapitalScreenState extends State<CapitalScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (_capitals.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text(
-                      'Belum ada catatan modal',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary),
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Text(
+                        'Belum ada catatan modal',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
                     ),
                   ),
                 ...(_capitals.map((c) => Container(
