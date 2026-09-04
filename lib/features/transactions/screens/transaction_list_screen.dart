@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -63,7 +64,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               const PopupMenuItem(value: 'income', child: Text('Pemasukan')),
               const PopupMenuItem(value: 'expense', child: Text('Pengeluaran')),
             ],
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Iconsax.filter),
           ),
         ],
       ),
@@ -79,7 +80,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         constraints: BoxConstraints(minHeight: constraints.maxHeight),
                         child: Center(
                           child: EmptyState(
-                            icon: Icons.receipt_long,
+                            icon: Iconsax.receipt_text,
                             title: 'Belum ada transaksi',
                             subtitle: 'Mulai catat pemasukan atau pengeluaran usaha Anda.',
                             actionLabel: 'Tambah Transaksi',
@@ -117,7 +118,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           );
         },
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Iconsax.add, color: Colors.white),
       ),
     );
   }

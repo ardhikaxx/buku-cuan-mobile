@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../models/transaction_model.dart';
@@ -33,7 +34,7 @@ class TransactionListTile extends StatelessWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(Icons.delete_outline, color: Colors.white, size: 24),
+            Icon(Iconsax.trash, color: Colors.white, size: 22),
             SizedBox(width: 8),
             Text(
               'Hapus',
@@ -67,7 +68,7 @@ class TransactionListTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                isIncome ? Iconsax.money_recive : Iconsax.money_send,
                 color: color,
                 size: 22,
               ),
