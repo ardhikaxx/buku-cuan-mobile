@@ -79,21 +79,16 @@ class AppProvider extends ChangeNotifier {
         return false;
       }
 
-      final userId = FirebaseService.generateId();
-      final workspaceId = license.workspaceId.isNotEmpty
-          ? license.workspaceId
-          : FirebaseService.generateId();
+      final workspaceId = license.workspaceId;
 
-      await _licenseService.activateToken(tokenKey, userId, workspaceId);
+      await _licenseService.activateToken(tokenKey, workspaceId);
 
       await StorageService.saveToken(tokenKey);
       await StorageService.saveWorkspaceId(workspaceId);
-      await StorageService.saveUserId(userId);
       await StorageService.saveActivated(true);
 
       _license = license;
       _workspaceId = workspaceId;
-      _userId = userId;
       _isActivated = true;
       _isExpired = false;
 
