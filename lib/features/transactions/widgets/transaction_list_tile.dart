@@ -89,32 +89,28 @@ class TransactionListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.divider,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          transaction.categoryName,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      transaction.categoryName,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        DateFormatter.formatDate(transaction.date),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textHint,
-                        ),
-                      ),
-                    ],
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    DateFormatter.formatDate(transaction.date),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textHint,
+                    ),
                   ),
                 ],
               ),
