@@ -153,7 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           child: const Center(
             child: Icon(
-              Iconsax.wallet_2,
+              Iconsax.moneys,
               color: Colors.white,
               size: 24,
             ),
