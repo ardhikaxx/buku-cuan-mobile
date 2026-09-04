@@ -11,9 +11,7 @@ import '../../transactions/screens/add_transaction_screen.dart';
 import '../../transactions/screens/transaction_list_screen.dart';
 import '../../transactions/widgets/transaction_list_tile.dart';
 import '../../debts/screens/add_debt_screen.dart';
-import '../../debts/screens/debt_list_screen.dart';
 import '../../receivables/screens/add_receivable_screen.dart';
-import '../../receivables/screens/receivable_list_screen.dart';
 import '../../capital/screens/capital_screen.dart';
 import '../../reminders/screens/reminder_screen.dart';
 import '../../reports/screens/export_screen.dart';
@@ -89,7 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 18),
               _buildBalanceCard(),
               const SizedBox(height: 14),
-              _buildMetricGrid(),
+              _buildNetProfitCard(),
               const SizedBox(height: 20),
               _buildQuickActions(),
               const SizedBox(height: 20),
@@ -407,43 +405,96 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMetricGrid() {
+  Widget _buildNetProfitCard() {
     final netProfit = _summary['netProfit'] ?? 0;
-    final totalDebt = _summary['totalDebt'] ?? 0;
-    final totalReceivable = _summary['totalReceivable'] ?? 0;
+    final isProfit = netProfit >= 0;
+    final color = isProfit ? AppColors.income : AppColors.expense;
+    final bgColor = isProfit ? const Color(0xFFE8F8EA) : const Color(0xFFFFEAEA);
 
-    return Row(
-      children: [
-        Expanded(
-          child: _MetricCard(
-            title: 'Laba Bersih',
-            amount: netProfit,
-            icon: Icons.trending_up_rounded,
-            color: netProfit >= 0 ? AppColors.income : AppColors.expense,
-            isProfit: true,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _MetricCard(
-            title: 'Hutang',
-            amount: totalDebt,
-            icon: Icons.money_off_csred_rounded,
-            color: AppColors.debt,
-            onTap: () => _navigateTo(const DebtListScreen()),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              isProfit ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+              color: color,
+              size: 24,
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _MetricCard(
-            title: 'Piutang',
-            amount: totalReceivable,
-            icon: Icons.request_quote_rounded,
-            color: AppColors.receivable,
-            onTap: () => _navigateTo(const ReceivableListScreen()),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Laba Bersih Usaha',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  CurrencyFormatter.formatRupiah(netProfit),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isProfit ? Icons.check_circle_rounded : Icons.info_rounded,
+                  size: 13,
+                  color: color,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  isProfit ? 'Surplus' : 'Defisit',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -842,100 +893,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _navigateToAddReceivable() =>
       _navigateTo(const AddReceivableScreen());
-}
-
-class _MetricCard extends StatelessWidget {
-  final String title;
-  final double amount;
-  final IconData icon;
-  final Color color;
-  final bool isProfit;
-  final VoidCallback? onTap;
-
-  const _MetricCard({
-    required this.title,
-    required this.amount,
-    required this.icon,
-    required this.color,
-    this.isProfit = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(icon, size: 15, color: color),
-                  ),
-                  if (onTap != null)
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 3),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  CurrencyFormatter.formatRupiahShort(amount),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isProfit
-                        ? (amount >= 0 ? AppColors.income : AppColors.expense)
-                        : color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _GojekServiceItem extends StatelessWidget {
