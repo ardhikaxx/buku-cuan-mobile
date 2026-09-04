@@ -199,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFF0F0F0),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.border),
             boxShadow: [
@@ -211,7 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           child: IconButton(
-            icon: const Icon(Iconsax.refresh_2, color: AppColors.textPrimary, size: 20),
+            icon: const Icon(Iconsax.refresh_2, color: Color(0xFF616161), size: 20),
             onPressed: _loadData,
             tooltip: 'Perbarui Data',
             constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
