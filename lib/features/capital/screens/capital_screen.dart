@@ -68,6 +68,7 @@ class _CapitalScreenState extends State<CapitalScreen> {
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [CurrencyInputFormatter()],
                 decoration: const InputDecoration(
                   labelText: 'Nominal',
                   prefixText: 'Rp ',
@@ -98,9 +99,7 @@ class _CapitalScreenState extends State<CapitalScreen> {
       final provider = context.read<AppProvider>();
       if (provider.workspaceId == null) return;
 
-      final amountText = amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
-      if (amountText.isEmpty) return;
-      final amount = double.parse(amountText);
+      final amount = CurrencyFormatter.parseRupiah(amountController.text);
       if (amount <= 0) return;
 
       final capital = CapitalModel(
