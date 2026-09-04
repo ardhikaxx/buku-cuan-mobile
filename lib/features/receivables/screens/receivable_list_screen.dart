@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -57,7 +58,7 @@ class _ReceivableListScreenState extends State<ReceivableListScreen> {
                         constraints: BoxConstraints(minHeight: constraints.maxHeight),
                         child: Center(
                           child: EmptyState(
-                            icon: Icons.request_page,
+                            icon: Iconsax.card_receive,
                             title: 'Belum ada piutang',
                             subtitle: 'Catat piutang dari pelanggan Anda.',
                             actionLabel: 'Tambah Piutang',
@@ -89,7 +90,7 @@ class _ReceivableListScreenState extends State<ReceivableListScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.request_page, color: AppColors.receivable, size: 32),
+                              const Icon(Iconsax.card_receive, color: AppColors.receivable, size: 32),
                               const SizedBox(width: 16),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +164,7 @@ class _ReceivableTile extends StatelessWidget {
                 color: AppColors.receivable.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.person, color: AppColors.receivable, size: 20),
+              child: const Icon(Iconsax.user, color: AppColors.receivable, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
