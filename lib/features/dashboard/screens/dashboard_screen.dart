@@ -15,6 +15,9 @@ import '../../debts/screens/debt_list_screen.dart';
 import '../../receivables/screens/add_receivable_screen.dart';
 import '../../receivables/screens/receivable_list_screen.dart';
 import '../../capital/screens/capital_screen.dart';
+import '../../reminders/screens/reminder_screen.dart';
+import '../../reports/screens/export_screen.dart';
+import '../../settings/screens/settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -445,110 +448,111 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Aksi Cepat',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.2,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _ActionButton(
-              icon: Icons.arrow_downward_rounded,
-              label: 'Uang Masuk',
-              color: AppColors.income,
-              onTap: () => _navigateToAddTransaction('income'),
-            ),
-            const SizedBox(width: 8),
-            _ActionButton(
-              icon: Icons.arrow_upward_rounded,
-              label: 'Uang Keluar',
-              color: AppColors.expense,
-              onTap: () => _navigateToAddTransaction('expense'),
-            ),
-            const SizedBox(width: 8),
-            _ActionButton(
-              icon: Icons.money_off_csred_rounded,
-              label: 'Hutang',
-              color: AppColors.debt,
-              onTap: () => _navigateToAddDebt(),
-            ),
-            const SizedBox(width: 8),
-            _ActionButton(
-              icon: Icons.request_quote_rounded,
-              label: 'Piutang',
-              color: AppColors.receivable,
-              onTap: () => _navigateToAddReceivable(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            onTap: () => _navigateTo(const CapitalScreen()),
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              children: [
+                Icon(Icons.bolt_rounded, size: 20, color: AppColors.primary),
+                SizedBox(width: 6),
+                Text(
+                  'Aksi Cepat',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.2,
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.account_balance_rounded, size: 20, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kelola Modal Usaha',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          'Catat penambahan modal & penarikan (Prive)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textSecondary),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _GojekServiceItem(
+                icon: Icons.arrow_downward_rounded,
+                label: 'Uang Masuk',
+                iconColor: const Color(0xFF00880C),
+                backgroundColor: const Color(0xFFE8F8EA),
+                onTap: () => _navigateToAddTransaction('income'),
+              ),
+              _GojekServiceItem(
+                icon: Icons.arrow_upward_rounded,
+                label: 'Uang Keluar',
+                iconColor: const Color(0xFFEE2737),
+                backgroundColor: const Color(0xFFFFEAEA),
+                onTap: () => _navigateToAddTransaction('expense'),
+              ),
+              _GojekServiceItem(
+                icon: Icons.receipt_long_rounded,
+                label: 'Hutang',
+                iconColor: const Color(0xFFFF6D00),
+                backgroundColor: const Color(0xFFFFF3E0),
+                onTap: () => _navigateToAddDebt(),
+              ),
+              _GojekServiceItem(
+                icon: Icons.request_quote_rounded,
+                label: 'Piutang',
+                iconColor: const Color(0xFF00AED6),
+                backgroundColor: const Color(0xFFE0F7FA),
+                onTap: () => _navigateToAddReceivable(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _GojekServiceItem(
+                icon: Icons.account_balance_rounded,
+                label: 'Modal Usaha',
+                iconColor: const Color(0xFF8E24AA),
+                backgroundColor: const Color(0xFFF3E5F5),
+                onTap: () => _navigateTo(const CapitalScreen()),
+              ),
+              _GojekServiceItem(
+                icon: Icons.notifications_active_rounded,
+                label: 'Pengingat',
+                iconColor: const Color(0xFFD97706),
+                backgroundColor: const Color(0xFFFEF3C7),
+                onTap: () => _navigateTo(const ReminderScreen()),
+              ),
+              _GojekServiceItem(
+                icon: Icons.file_download_rounded,
+                label: 'Export Data',
+                iconColor: const Color(0xFF4338CA),
+                backgroundColor: const Color(0xFFE0E7FF),
+                onTap: () => _navigateTo(const ExportScreen()),
+              ),
+              _GojekServiceItem(
+                icon: Icons.apps_rounded,
+                label: 'Lainnya',
+                iconColor: const Color(0xFF616161),
+                backgroundColor: const Color(0xFFF0F0F0),
+                onTap: () => _navigateTo(const SettingsScreen()),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -934,67 +938,63 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
+class _GojekServiceItem extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
+  final Color iconColor;
+  final Color backgroundColor;
   final VoidCallback onTap;
 
-  const _ActionButton({
+  const _GojekServiceItem({
     required this.icon,
     required this.label,
-    required this.color,
+    required this.iconColor,
+    required this.backgroundColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Material(
-        color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+        splashColor: iconColor.withValues(alpha: 0.12),
+        highlightColor: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: color, size: 22),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                child: Center(
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: 28,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2E2E2E),
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
           ),
         ),
       ),
