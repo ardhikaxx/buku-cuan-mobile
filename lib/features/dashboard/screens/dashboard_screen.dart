@@ -337,10 +337,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 12),
             if (_recentTransactions.isEmpty)
-              const EmptyState(
-                icon: Icons.receipt_long,
-                title: 'Belum ada transaksi',
-                subtitle: 'Mulai catat pemasukan atau pengeluaran usaha Anda.',
+              const Center(
+                child: EmptyState(
+                  icon: Icons.receipt_long,
+                  title: 'Belum ada transaksi',
+                  subtitle: 'Mulai catat pemasukan atau pengeluaran usaha Anda.',
+                ),
               )
             else
               ...(_recentTransactions.map(
