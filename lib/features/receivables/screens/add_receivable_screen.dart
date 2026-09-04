@@ -97,7 +97,11 @@ class _AddReceivableScreenState extends State<AddReceivableScreen> {
         createdAt: widget.existingReceivable?.createdAt ?? now,
       );
 
-      await _receivableService.addReceivable(receivable);
+      if (widget.existingReceivable != null) {
+        await _receivableService.updateReceivable(receivable);
+      } else {
+        await _receivableService.addReceivable(receivable);
+      }
 
       if (_createReminder && widget.existingReceivable == null) {
         final reminder = ReminderModel(
