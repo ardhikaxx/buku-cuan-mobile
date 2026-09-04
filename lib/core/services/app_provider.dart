@@ -168,6 +168,11 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setUserName(String name) {
+    _userName = name;
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     _categorySubscription?.cancel();
     _categorySubscription = null;
