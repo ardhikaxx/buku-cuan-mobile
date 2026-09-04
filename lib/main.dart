@@ -92,13 +92,13 @@ class _ExpiredScreen extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: AppColors.warning.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.access_time_filled,
                     size: 40,
-                    color: Colors.orange.shade700,
+                    color: AppColors.warning,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -107,6 +107,7 @@ class _ExpiredScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -115,7 +116,7 @@ class _ExpiredScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey,
+                    color: AppColors.textSecondary,
                     height: 1.5,
                   ),
                 ),
