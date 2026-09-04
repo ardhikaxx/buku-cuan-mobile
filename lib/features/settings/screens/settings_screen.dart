@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/services/firebase_service.dart';
@@ -26,21 +27,21 @@ class SettingsScreen extends StatelessWidget {
               _SettingsCard(
                 children: [
                   _SettingsTile(
-                    icon: Icons.business,
+                    icon: Iconsax.shop,
                     title: 'Nama Usaha',
                     subtitle: provider.userName ?? 'Belum diatur',
                     onTap: () => _editBusinessName(context, provider),
                   ),
                   const Divider(),
                   _SettingsTile(
-                    icon: Icons.location_on,
+                    icon: Iconsax.location,
                     title: 'Alamat',
                     subtitle: 'Atur alamat usaha',
                     onTap: () {},
                   ),
                   const Divider(),
                   _SettingsTile(
-                    icon: Icons.phone,
+                    icon: Iconsax.call,
                     title: 'Nomor WhatsApp',
                     subtitle: 'Atur nomor WhatsApp',
                     onTap: () {},
@@ -65,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
               _SettingsCard(
                 children: [
                   _SettingsTile(
-                    icon: Icons.category,
+                    icon: Iconsax.category,
                     title: 'Kategori Transaksi',
                     subtitle: 'Kelola kategori pemasukan & pengeluaran',
                     onTap: () => Navigator.push(
@@ -77,7 +78,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(),
                   _SettingsTile(
-                    icon: Icons.notifications,
+                    icon: Iconsax.notification_bing,
                     title: 'Reminder',
                     subtitle: 'Kelola reminder pembayaran',
                     onTap: () => Navigator.push(
@@ -87,7 +88,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(),
                   _SettingsTile(
-                    icon: Icons.info_outline,
+                    icon: Iconsax.info_circle,
                     title: 'Tentang Buku Cuan',
                     subtitle: 'Versi 1.0.0',
                     onTap: () => _showAbout(context),
@@ -261,7 +262,7 @@ class _SettingsTile extends StatelessWidget {
       leading: Icon(icon, color: AppColors.primary),
       title: Text(title, style: const TextStyle(fontSize: 14)),
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, size: 20),
+      trailing: const Icon(Iconsax.arrow_right_3, size: 18),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );
@@ -308,7 +309,7 @@ class _CategoryManagementScreen extends StatelessWidget {
               const SizedBox(height: 8),
               ...incomeCategories.map((cat) => ListTile(
                     title: Text(cat.name, style: const TextStyle(fontSize: 14)),
-                    trailing: const Icon(Icons.chevron_right, size: 20),
+                    trailing: const Icon(Iconsax.arrow_right_3, size: 18),
                     contentPadding: EdgeInsets.zero,
                   )),
               const SizedBox(height: 16),
@@ -316,7 +317,7 @@ class _CategoryManagementScreen extends StatelessWidget {
               const SizedBox(height: 8),
               ...expenseCategories.map((cat) => ListTile(
                     title: Text(cat.name, style: const TextStyle(fontSize: 14)),
-                    trailing: const Icon(Icons.chevron_right, size: 20),
+                    trailing: const Icon(Iconsax.arrow_right_3, size: 18),
                     contentPadding: EdgeInsets.zero,
                   )),
             ],
