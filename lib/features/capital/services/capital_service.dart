@@ -29,15 +29,19 @@ class CapitalService {
   }
 
   Future<double> getTotalCapital(String workspaceId) async {
-    final query = await _capitalCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .get();
+    try {
+      final query = await _capitalCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    double total = 0;
-    for (final doc in query.docs) {
-      final capital = CapitalModel.fromFirestore(doc);
-      total += capital.signedAmount;
+      double total = 0;
+      for (final doc in query.docs) {
+        final capital = CapitalModel.fromFirestore(doc);
+        total += capital.signedAmount;
+      }
+      return total;
+    } catch (e) {
+      return 0;
     }
-    return total;
   }
 }
