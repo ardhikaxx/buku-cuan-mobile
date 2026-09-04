@@ -41,9 +41,10 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
+              inputFormatters: [CurrencyInputFormatter()],
               decoration: const InputDecoration(
                 prefixText: 'Rp ',
-                hintText: 'Jumlah bayar',
+                hintText: '0',
               ),
             ),
           ],
@@ -55,8 +56,8 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
           ),
           TextButton(
             onPressed: () {
-              final amount = double.tryParse(controller.text.replaceAll(RegExp(r'[^0-9]'), ''));
-              if (amount != null && amount > 0) {
+              final amount = CurrencyFormatter.parseRupiah(controller.text);
+              if (amount > 0) {
                 Navigator.pop(context, amount);
               }
             },
