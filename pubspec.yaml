@@ -45,6 +45,7 @@ dependencies:
 
   # HTTP for validation
   http: ^1.3.0
+  iconsax_flutter: ^1.0.1
 
 dev_dependencies:
   flutter_test:
