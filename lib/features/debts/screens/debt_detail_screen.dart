@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/services/firebase_service.dart';
@@ -130,7 +131,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
         actions: [
           IconButton(
             onPressed: _deleteDebt,
-            icon: const Icon(Icons.delete, color: AppColors.danger),
+            icon: const Icon(Iconsax.trash, color: AppColors.danger),
           ),
         ],
       ),

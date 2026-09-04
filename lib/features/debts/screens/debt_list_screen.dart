@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -60,7 +61,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                         constraints: BoxConstraints(minHeight: constraints.maxHeight),
                         child: Center(
                           child: EmptyState(
-                            icon: Icons.money_off,
+                            icon: Iconsax.card_send,
                             title: 'Belum ada hutang',
                             subtitle: 'Catat hutang yang belum Anda bayar.',
                             actionLabel: 'Tambah Hutang',
@@ -92,7 +93,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.money_off, color: AppColors.debt, size: 32),
+                              const Icon(Iconsax.card_send, color: AppColors.debt, size: 32),
                               const SizedBox(width: 16),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +137,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
           );
         },
         backgroundColor: AppColors.debt,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Iconsax.add, color: Colors.white),
       ),
     );
   }
@@ -181,7 +182,7 @@ class _DebtTile extends StatelessWidget {
                 color: AppColors.debt.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.person, color: AppColors.debt, size: 20),
+              child: const Icon(Iconsax.user, color: AppColors.debt, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
