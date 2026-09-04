@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../activation/data/license_model.dart';
 import '../../categories/models/category_model.dart';
+import '../../reminders/screens/reminder_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -79,7 +80,10 @@ class SettingsScreen extends StatelessWidget {
                     icon: Icons.notifications,
                     title: 'Reminder',
                     subtitle: 'Kelola reminder pembayaran',
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReminderScreen()),
+                    ),
                   ),
                   const Divider(),
                   _SettingsTile(
@@ -160,8 +164,7 @@ class SettingsScreen extends StatelessWidget {
               final name = controller.text.trim();
               if (name.isNotEmpty) {
                 await StorageService.saveUserName(name);
-                // ignore: use_build_context_synchronously
-                provider.initialize();
+                provider.setUserName(name);
                 // ignore: use_build_context_synchronously
                 Navigator.pop(context);
               }
