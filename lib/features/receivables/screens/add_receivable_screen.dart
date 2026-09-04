@@ -36,7 +36,7 @@ class _AddReceivableScreenState extends State<AddReceivableScreen> {
     super.initState();
     if (widget.existingReceivable != null) {
       _nameController.text = widget.existingReceivable!.name;
-      _amountController.text = widget.existingReceivable!.amount.toStringAsFixed(0);
+      _amountController.text = CurrencyFormatter.formatNumber(widget.existingReceivable!.amount);
       _descriptionController.text = widget.existingReceivable!.description ?? '';
       _receivableDate = widget.existingReceivable!.receivableDate;
       _dueDate = widget.existingReceivable!.dueDate;
@@ -78,7 +78,7 @@ class _AddReceivableScreenState extends State<AddReceivableScreen> {
       final provider = context.read<AppProvider>();
       if (provider.workspaceId == null) return;
 
-      final amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), ''));
+      final amount = CurrencyFormatter.parseRupiah(_amountController.text);
       final now = DateTime.now();
 
       final receivable = ReceivableModel(
@@ -165,6 +165,7 @@ class _AddReceivableScreenState extends State<AddReceivableScreen> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [CurrencyInputFormatter()],
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 decoration: const InputDecoration(
                   prefixText: 'Rp ',
@@ -173,8 +174,8 @@ class _AddReceivableScreenState extends State<AddReceivableScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Masukkan nominal';
-                  final amount = double.tryParse(value.replaceAll(RegExp(r'[^0-9]'), ''));
-                  if (amount == null || amount <= 0) return 'Nominal tidak valid';
+                  final amount = CurrencyFormatter.parseRupiah(value);
+                  if (amount <= 0) return 'Nominal tidak valid';
                   return null;
                 },
               ),
