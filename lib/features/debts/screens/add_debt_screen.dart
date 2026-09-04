@@ -97,7 +97,11 @@ class _AddDebtScreenState extends State<AddDebtScreen> {
         createdAt: widget.existingDebt?.createdAt ?? now,
       );
 
-      await _debtService.addDebt(debt);
+      if (widget.existingDebt != null) {
+        await _debtService.updateDebt(debt);
+      } else {
+        await _debtService.addDebt(debt);
+      }
 
       if (_createReminder && widget.existingDebt == null) {
         final reminder = ReminderModel(
