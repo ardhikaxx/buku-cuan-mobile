@@ -70,11 +70,31 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _transactions.isEmpty
-              ? const EmptyState(
-                  icon: Icons.receipt_long,
-                  title: 'Belum ada transaksi',
-                  subtitle: 'Mulai catat pemasukan atau pengeluaran usaha Anda.',
-                  actionLabel: 'Tambah Transaksi',
+              ? LayoutBuilder(
+                  builder: (context, constraints) => RefreshIndicator(
+                    onRefresh: () async => _loadTransactions(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: Center(
+                          child: EmptyState(
+                            icon: Icons.receipt_long,
+                            title: 'Belum ada transaksi',
+                            subtitle: 'Mulai catat pemasukan atau pengeluaran usaha Anda.',
+                            actionLabel: 'Tambah Transaksi',
+                            onAction: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
+                              );
+                              _loadTransactions();
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 )
               : RefreshIndicator(
                   onRefresh: () async => _loadTransactions(),
