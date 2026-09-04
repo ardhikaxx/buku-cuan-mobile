@@ -63,29 +63,37 @@ class ReceivableService {
   }
 
   Future<double> getTotalReceivable(String workspaceId) async {
-    final query = await _receivablesCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('status', isNotEqualTo: 'paid')
-        .get();
+    try {
+      final query = await _receivablesCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    double total = 0;
-    for (final doc in query.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      total += (data['remainingAmount'] ?? 0).toDouble();
+      double total = 0;
+      for (final doc in query.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['status'] != 'paid') {
+          total += (data['remainingAmount'] ?? 0).toDouble();
+        }
+      }
+      return total;
+    } catch (e) {
+      return 0;
     }
-    return total;
   }
 
   Future<List<ReceivableModel>> getOverdueReceivables(String workspaceId) async {
-    final query = await _receivablesCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('status', isNotEqualTo: 'paid')
-        .get();
+    try {
+      final query = await _receivablesCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    final now = DateTime.now();
-    return query.docs
-        .map((doc) => ReceivableModel.fromFirestore(doc))
-        .where((r) => r.dueDate.isBefore(now))
-        .toList();
+      final now = DateTime.now();
+      return query.docs
+          .map((doc) => ReceivableModel.fromFirestore(doc))
+          .where((r) => r.status != ReceivableStatus.paid && r.dueDate.isBefore(now))
+          .toList();
+    } catch (e) {
+      return [];
+    }
   }
 }
