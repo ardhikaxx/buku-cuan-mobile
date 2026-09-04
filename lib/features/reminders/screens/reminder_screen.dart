@@ -45,10 +45,23 @@ class _ReminderScreenState extends State<ReminderScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : activeReminders.isEmpty
-              ? const EmptyState(
-                  icon: Icons.notifications_none,
-                  title: 'Tidak ada reminder',
-                  subtitle: 'Reminder akan muncul saat Anda membuat hutang atau piutang.',
+              ? LayoutBuilder(
+                  builder: (context, constraints) => RefreshIndicator(
+                    onRefresh: () async => _loadReminders(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: const Center(
+                          child: EmptyState(
+                            icon: Icons.notifications_none,
+                            title: 'Tidak ada reminder',
+                            subtitle: 'Reminder akan muncul saat Anda membuat hutang atau piutang.',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 )
               : RefreshIndicator(
                   onRefresh: () async => _loadReminders(),
