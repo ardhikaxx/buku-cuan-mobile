@@ -34,7 +34,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadData() async {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
+    if (provider.workspaceId == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
     try {
       final summary = await _dashboardService.getSummary(provider.workspaceId!);
@@ -42,14 +45,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final recentTransactions =
           await _dashboardService.getRecentTransactions(provider.workspaceId!, 5);
 
-      setState(() {
-        _summary = summary;
-        _weeklyData = weeklyData;
-        _recentTransactions = recentTransactions;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _summary = summary;
+          _weeklyData = weeklyData;
+          _recentTransactions = recentTransactions;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -214,7 +221,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildCashFlowChart() {
-    if (_weeklyData.isEmpty) return const SizedBox.shrink();
+    final bool hasData = _weeklyData.isNotEmpty &&
+        _weeklyData.any((d) => ((d['income'] as double?) ?? 0) > 0 || ((d['expense'] as double?) ?? 0) > 0);
 
     return Card(
       child: Padding(
@@ -222,88 +230,128 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Arus Kas 7 Hari Terakhir',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Arus Kas 7 Hari Terakhir',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (hasData)
+                  Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.income,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text('Masuk', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.expense,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text('Keluar', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    ],
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: _getMaxY(),
-                  barTouchData: BarTouchData(
-                    touchTooltipData: BarTouchTooltipData(
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        return BarTooltipItem(
-                          CurrencyFormatter.formatRupiahShort(rod.toY),
-                          const TextStyle(color: Colors.white, fontSize: 11),
-                        );
-                      },
-                    ),
-                  ),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          if (index >= 0 && index < _weeklyData.length) {
-                            final date = _weeklyData[index]['date'] as DateTime;
-                            return Text(
-                              DateFormatter.formatDayMonth(date),
-                              style: const TextStyle(fontSize: 10),
-                            );
-                          }
-                          return const Text('');
+            if (!hasData)
+              const Center(
+                child: EmptyState(
+                  icon: Icons.bar_chart,
+                  title: 'Belum ada aktivitas arus kas',
+                  subtitle: 'Grafik transaksi 7 hari terakhir akan muncul setelah Anda mencatat pemasukan atau pengeluaran.',
+                ),
+              )
+            else
+              SizedBox(
+                height: 200,
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: _getMaxY(),
+                    barTouchData: BarTouchData(
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          return BarTooltipItem(
+                            CurrencyFormatter.formatRupiahShort(rod.toY),
+                            const TextStyle(color: Colors.white, fontSize: 11),
+                          );
                         },
                       ),
                     ),
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            final index = value.toInt();
+                            if (index >= 0 && index < _weeklyData.length) {
+                              final date = _weeklyData[index]['date'] as DateTime;
+                              return Text(
+                                DateFormatter.formatDayMonth(date),
+                                style: const TextStyle(fontSize: 10),
+                              );
+                            }
+                            return const Text('');
+                          },
+                        ),
+                      ),
+                      leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
                     ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
+                    borderData: FlBorderData(show: false),
+                    gridData: const FlGridData(show: false),
+                    barGroups: _weeklyData.asMap().entries.map((entry) {
+                      final income = (entry.value['income'] as double?) ?? 0;
+                      final expense = (entry.value['expense'] as double?) ?? 0;
+                      return BarChartGroupData(
+                        x: entry.key,
+                        barRods: [
+                          BarChartRodData(
+                            toY: income,
+                            color: AppColors.income,
+                            width: 12,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                          ),
+                          BarChartRodData(
+                            toY: expense,
+                            color: AppColors.expense,
+                            width: 12,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
                   ),
-                  borderData: FlBorderData(show: false),
-                  gridData: const FlGridData(show: false),
-                  barGroups: _weeklyData.asMap().entries.map((entry) {
-                    final income = entry.value['income'] as double;
-                    final expense = entry.value['expense'] as double;
-                    return BarChartGroupData(
-                      x: entry.key,
-                      barRods: [
-                        BarChartRodData(
-                          toY: income,
-                          color: AppColors.income,
-                          width: 12,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(4),
-                          ),
-                        ),
-                        BarChartRodData(
-                          toY: expense,
-                          color: AppColors.expense,
-                          width: 12,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(4),
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
                 ),
               ),
-            ),
           ],
         ),
       ),
