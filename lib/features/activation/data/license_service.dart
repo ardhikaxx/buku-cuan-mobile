@@ -4,7 +4,6 @@ import '../../../core/services/firebase_service.dart';
 
 class LicenseService {
   final CollectionReference _licensesCollection = FirebaseService.firestore.collection('licenses');
-  final CollectionReference _usersCollection = FirebaseService.firestore.collection('users');
 
   Future<LicenseModel?> validateToken(String tokenKey) async {
     try {
@@ -27,7 +26,7 @@ class LicenseService {
     }
   }
 
-  Future<void> activateToken(String tokenKey, String userId, String workspaceId) async {
+  Future<void> activateToken(String tokenKey, String workspaceId) async {
     try {
       final query = await _licensesCollection
           .where('tokenKey', isEqualTo: tokenKey)
@@ -49,20 +48,10 @@ class LicenseService {
       }
 
       await _licensesCollection.doc(license.id).update({
-        'userId': userId,
-        'workspaceId': workspaceId,
         'status': 'active',
         'activatedAt': FieldValue.serverTimestamp(),
         if (expiredAt != null) 'expiredAt': Timestamp.fromDate(expiredAt),
         'lastValidatedAt': FieldValue.serverTimestamp(),
-      });
-
-      await _usersCollection.doc(userId).set({
-        'workspaceId': workspaceId,
-        'licenseId': license.id,
-        'name': '',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       throw Exception('Gagal mengaktifkan token: $e');
