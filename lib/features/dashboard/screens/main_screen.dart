@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../core/theme/app_theme.dart';
 import 'dashboard_screen.dart';
 import '../../transactions/screens/transaction_list_screen.dart';
@@ -58,27 +59,27 @@ class _MainScreenState extends State<MainScreen> {
               _buildNavItem(
                 index: 0,
                 label: 'Beranda',
-                icon: Icons.home_rounded,
+                icon: Iconsax.home_2,
               ),
               _buildNavItem(
                 index: 1,
                 label: 'Transaksi',
-                icon: Icons.article_rounded,
+                icon: Iconsax.receipt_2,
               ),
               _buildNavItem(
                 index: 2,
                 label: 'Hutang',
-                icon: Icons.account_balance_wallet_rounded,
+                icon: Iconsax.wallet_3,
               ),
               _buildNavItem(
                 index: 3,
                 label: 'Laporan',
-                icon: Icons.bar_chart_rounded,
+                icon: Iconsax.chart_21,
               ),
               _buildNavItem(
                 index: 4,
                 label: 'Pengaturan',
-                icon: Icons.settings_rounded,
+                icon: Iconsax.setting_2,
               ),
             ],
           ),
