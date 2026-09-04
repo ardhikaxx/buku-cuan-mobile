@@ -51,11 +51,31 @@ class _DebtListScreenState extends State<DebtListScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _debts.isEmpty
-              ? const EmptyState(
-                  icon: Icons.money_off,
-                  title: 'Belum ada hutang',
-                  subtitle: 'Catat hutang yang belum Anda bayar.',
-                  actionLabel: 'Tambah Hutang',
+              ? LayoutBuilder(
+                  builder: (context, constraints) => RefreshIndicator(
+                    onRefresh: () async => _loadDebts(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: Center(
+                          child: EmptyState(
+                            icon: Icons.money_off,
+                            title: 'Belum ada hutang',
+                            subtitle: 'Catat hutang yang belum Anda bayar.',
+                            actionLabel: 'Tambah Hutang',
+                            onAction: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AddDebtScreen()),
+                              );
+                              _loadDebts();
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 )
               : RefreshIndicator(
                   onRefresh: () async => _loadDebts(),
