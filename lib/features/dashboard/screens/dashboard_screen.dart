@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../core/services/app_provider.dart';
@@ -186,7 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           child: IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.textPrimary, size: 20),
+            icon: const Icon(Iconsax.refresh_2, color: AppColors.textPrimary, size: 20),
             onPressed: _loadData,
             tooltip: 'Perbarui Data',
             constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -265,7 +266,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.account_balance_wallet_rounded, size: 14, color: Colors.white),
+                          Icon(Iconsax.wallet_3, size: 14, color: Colors.white),
                           SizedBox(width: 4),
                           Text(
                             'TOTAL SALDO USAHA',
@@ -289,7 +290,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          _isBalanceVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          _isBalanceVisible ? Iconsax.eye : Iconsax.eye_slash,
                           color: Colors.white,
                           size: 16,
                         ),
@@ -325,7 +326,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 color: AppColors.income.withValues(alpha: 0.3),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.arrow_downward_rounded, color: Colors.white, size: 16),
+                              child: const Icon(Iconsax.money_recive, color: Colors.white, size: 16),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -367,7 +368,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 color: AppColors.expense.withValues(alpha: 0.35),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 16),
+                              child: const Icon(Iconsax.money_send, color: Colors.white, size: 16),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -436,7 +437,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
-              isProfit ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+              isProfit ? Iconsax.trend_up : Iconsax.trend_down,
               color: color,
               size: 24,
             ),
@@ -477,7 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  isProfit ? Icons.check_circle_rounded : Icons.info_rounded,
+                  isProfit ? Iconsax.tick_circle : Iconsax.info_circle,
                   size: 13,
                   color: color,
                 ),
@@ -520,7 +521,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: EdgeInsets.symmetric(horizontal: 6),
             child: Row(
               children: [
-                Icon(Icons.bolt_rounded, size: 20, color: AppColors.primary),
+                Icon(Iconsax.flash_1, size: 20, color: AppColors.primary),
                 SizedBox(width: 6),
                 Text(
                   'Aksi Cepat',
@@ -539,28 +540,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _GojekServiceItem(
-                icon: Icons.arrow_downward_rounded,
+                icon: Iconsax.money_recive,
                 label: 'Uang Masuk',
                 iconColor: const Color(0xFF00880C),
                 backgroundColor: const Color(0xFFE8F8EA),
                 onTap: () => _navigateToAddTransaction('income'),
               ),
               _GojekServiceItem(
-                icon: Icons.arrow_upward_rounded,
+                icon: Iconsax.money_send,
                 label: 'Uang Keluar',
                 iconColor: const Color(0xFFEE2737),
                 backgroundColor: const Color(0xFFFFEAEA),
                 onTap: () => _navigateToAddTransaction('expense'),
               ),
               _GojekServiceItem(
-                icon: Icons.receipt_long_rounded,
+                icon: Iconsax.card_send,
                 label: 'Hutang',
                 iconColor: const Color(0xFFFF6D00),
                 backgroundColor: const Color(0xFFFFF3E0),
                 onTap: () => _navigateToAddDebt(),
               ),
               _GojekServiceItem(
-                icon: Icons.request_quote_rounded,
+                icon: Iconsax.card_receive,
                 label: 'Piutang',
                 iconColor: const Color(0xFF00AED6),
                 backgroundColor: const Color(0xFFE0F7FA),
@@ -573,28 +574,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _GojekServiceItem(
-                icon: Icons.account_balance_rounded,
+                icon: Iconsax.bank,
                 label: 'Modal Usaha',
                 iconColor: const Color(0xFF8E24AA),
                 backgroundColor: const Color(0xFFF3E5F5),
                 onTap: () => _navigateTo(const CapitalScreen()),
               ),
               _GojekServiceItem(
-                icon: Icons.notifications_active_rounded,
+                icon: Iconsax.notification_bing,
                 label: 'Pengingat',
                 iconColor: const Color(0xFFD97706),
                 backgroundColor: const Color(0xFFFEF3C7),
                 onTap: () => _navigateTo(const ReminderScreen()),
               ),
               _GojekServiceItem(
-                icon: Icons.file_download_rounded,
+                icon: Iconsax.document_download,
                 label: 'Export Data',
                 iconColor: const Color(0xFF4338CA),
                 backgroundColor: const Color(0xFFE0E7FF),
                 onTap: () => _navigateTo(const ExportScreen()),
               ),
               _GojekServiceItem(
-                icon: Icons.apps_rounded,
+                icon: Iconsax.element_4,
                 label: 'Lainnya',
                 iconColor: const Color(0xFF616161),
                 backgroundColor: const Color(0xFFF0F0F0),
@@ -633,7 +634,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.bar_chart_rounded, size: 20, color: AppColors.primary),
+                  Icon(Iconsax.chart_21, size: 20, color: AppColors.primary),
                   SizedBox(width: 6),
                   Text(
                     'Arus Kas 7 Hari Terakhir',
@@ -679,7 +680,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: EmptyState(
-                  icon: Icons.bar_chart_rounded,
+                  icon: Iconsax.chart_21,
                   title: 'Belum ada aktivitas arus kas',
                   subtitle: 'Grafik transaksi 7 hari terakhir akan muncul setelah Anda mencatat pemasukan atau pengeluaran.',
                 ),
@@ -808,7 +809,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.history_rounded, size: 20, color: AppColors.primary),
+                  Icon(Iconsax.clock, size: 20, color: AppColors.primary),
                   SizedBox(width: 6),
                   Text(
                     'Transaksi Terbaru',
@@ -837,7 +838,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       SizedBox(width: 2),
                       Icon(
-                        Icons.chevron_right_rounded,
+                        Iconsax.arrow_right_3,
                         size: 16,
                         color: AppColors.primary,
                       ),
@@ -853,7 +854,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: EmptyState(
-                  icon: Icons.receipt_long_rounded,
+                  icon: Iconsax.receipt_text,
                   title: 'Belum ada transaksi',
                   subtitle: 'Mulai catat pemasukan atau pengeluaran usaha Anda.',
                 ),
