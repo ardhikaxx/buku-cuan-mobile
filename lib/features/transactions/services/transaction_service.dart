@@ -57,63 +57,97 @@ class TransactionService {
   }
 
   Future<double> getTotalByType(String workspaceId, String type) async {
-    final query = await _transactionsCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('type', isEqualTo: type)
-        .get();
+    try {
+      final query = await _transactionsCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    double total = 0;
-    for (final doc in query.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      total += (data['amount'] ?? 0).toDouble();
+      double total = 0;
+      for (final doc in query.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['type'] == type) {
+          total += (data['amount'] ?? 0).toDouble();
+        }
+      }
+      return total;
+    } catch (e) {
+      return 0;
     }
-    return total;
   }
 
   Future<Map<String, double>> getSummaryByType(
       String workspaceId, DateTime start, DateTime end) async {
-    final query = await _transactionsCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(end))
-        .get();
+    try {
+      final query = await _transactionsCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    double income = 0;
-    double expense = 0;
+      double income = 0;
+      double expense = 0;
 
-    for (final doc in query.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final amount = (data['amount'] ?? 0).toDouble();
-      if (data['type'] == 'income') {
-        income += amount;
-      } else {
-        expense += amount;
+      for (final doc in query.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final ts = data['date'];
+        DateTime? date;
+        if (ts is Timestamp) {
+          date = ts.toDate();
+        } else if (ts is String) {
+          date = DateTime.tryParse(ts);
+        }
+
+        if (date != null && (date.isBefore(start) || date.isAfter(end))) {
+          continue;
+        }
+
+        final amount = (data['amount'] ?? 0).toDouble();
+        if (data['type'] == 'income') {
+          income += amount;
+        } else if (data['type'] == 'expense') {
+          expense += amount;
+        }
       }
-    }
 
-    return {'income': income, 'expense': expense};
+      return {'income': income, 'expense': expense};
+    } catch (e) {
+      return {'income': 0, 'expense': 0};
+    }
   }
 
   Future<List<Map<String, dynamic>>> getCategoryBreakdown(
       String workspaceId, String type, DateTime start, DateTime end) async {
-    final query = await _transactionsCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('type', isEqualTo: type)
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(end))
-        .get();
+    try {
+      final query = await _transactionsCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    final Map<String, double> breakdown = {};
-    for (final doc in query.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final categoryName = data['categoryName'] ?? 'Lainnya';
-      final amount = (data['amount'] ?? 0).toDouble();
-      breakdown[categoryName] = (breakdown[categoryName] ?? 0) + amount;
+      final Map<String, double> breakdown = {};
+      for (final doc in query.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['type'] != type) continue;
+
+        final ts = data['date'];
+        DateTime? date;
+        if (ts is Timestamp) {
+          date = ts.toDate();
+        } else if (ts is String) {
+          date = DateTime.tryParse(ts);
+        }
+
+        if (date != null && (date.isBefore(start) || date.isAfter(end))) {
+          continue;
+        }
+
+        final categoryName = data['categoryName'] ?? 'Lainnya';
+        final amount = (data['amount'] ?? 0).toDouble();
+        breakdown[categoryName] = (breakdown[categoryName] ?? 0) + amount;
+      }
+
+      return breakdown.entries
+          .map((e) => {'category': e.key, 'amount': e.value})
+          .toList()
+        ..sort((a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
+    } catch (e) {
+      return [];
     }
-
-    return breakdown.entries
-        .map((e) => {'category': e.key, 'amount': e.value})
-        .toList()
-      ..sort((a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
   }
 }
