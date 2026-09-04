@@ -129,19 +129,28 @@ class _CapitalScreenState extends State<CapitalScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF2C3E50), Color(0xFF3498DB)],
+                      colors: [Color(0xFF006C0E), Color(0xFF00AA13)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF00AA13).withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
                       const Text('Total Modal',
-                          style: TextStyle(color: Colors.white70, fontSize: 13)),
-                      const SizedBox(height: 4),
+                          style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 6),
                       Text(
                         CurrencyFormatter.formatRupiah(_totalCapital),
                         style: const TextStyle(
-                            color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                            color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: -0.5),
                       ),
                     ],
                   ),
@@ -163,14 +172,22 @@ class _CapitalScreenState extends State<CapitalScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            c.isWithdrawal ? Icons.arrow_upward : Icons.arrow_downward,
-                            color: c.isWithdrawal ? AppColors.danger : AppColors.success,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: (c.isWithdrawal ? AppColors.danger : AppColors.success).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              c.isWithdrawal ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                              color: c.isWithdrawal ? AppColors.danger : AppColors.success,
+                              size: 18,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -201,7 +218,7 @@ class _CapitalScreenState extends State<CapitalScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addCapital,
-        backgroundColor: const Color(0xFF2C3E50),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
