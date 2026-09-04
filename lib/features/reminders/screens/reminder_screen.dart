@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -54,7 +55,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                         constraints: BoxConstraints(minHeight: constraints.maxHeight),
                         child: const Center(
                           child: EmptyState(
-                            icon: Icons.notifications_none,
+                            icon: Iconsax.notification_bing,
                             title: 'Tidak ada reminder',
                             subtitle: 'Reminder akan muncul saat Anda membuat hutang atau piutang.',
                           ),
@@ -146,7 +147,7 @@ class _ReminderTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              reminder.isDebt ? Icons.money_off : Icons.request_page,
+              reminder.isDebt ? Iconsax.card_send : Iconsax.card_receive,
               color: color,
               size: 20,
             ),
@@ -172,7 +173,7 @@ class _ReminderTile extends StatelessWidget {
           ),
           IconButton(
             onPressed: onComplete,
-            icon: const Icon(Icons.check_circle_outline, size: 22),
+            icon: const Icon(Iconsax.tick_circle, size: 22),
             color: AppColors.success,
           ),
         ],
