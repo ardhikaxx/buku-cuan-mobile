@@ -595,8 +595,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onTap: () => _navigateTo(const ExportScreen()),
               ),
               _GojekServiceItem(
-                icon: Iconsax.element_4,
-                label: 'Lainnya',
+                icon: Iconsax.setting_2,
+                label: 'Pengaturan',
                 iconColor: const Color(0xFF616161),
                 backgroundColor: const Color(0xFFF0F0F0),
                 onTap: () => _navigateTo(const SettingsScreen()),
