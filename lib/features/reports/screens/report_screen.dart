@@ -214,6 +214,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           label: 'Hutang',
                           amount: _totalDebt,
                           color: AppColors.debt,
+                          isVertical: true,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -222,6 +223,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           label: 'Piutang',
                           amount: _totalReceivable,
                           color: AppColors.receivable,
+                          isVertical: true,
                         ),
                       ),
                     ],
@@ -310,32 +312,82 @@ class _SummaryCard extends StatelessWidget {
   final String label;
   final double amount;
   final Color color;
+  final bool isVertical;
 
   const _SummaryCard({
     required this.label,
     required this.amount,
     required this.color,
+    this.isVertical = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-          Text(
-            CurrencyFormatter.formatRupiah(amount),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color),
-          ),
-        ],
-      ),
+      child: isVertical
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    CurrencyFormatter.formatRupiah(amount),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      CurrencyFormatter.formatRupiah(amount),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
