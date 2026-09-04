@@ -28,10 +28,12 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final DashboardService _dashboardService = DashboardService();
   Map<String, double> _summary = {};
-  List<Map<String, dynamic>> _weeklyData = [];
+  List<Map<String, dynamic>> _cashFlowData = [];
   List<TransactionModel> _recentTransactions = [];
   bool _isLoading = true;
+  bool _isCashFlowLoading = false;
   bool _isBalanceVisible = true;
+  String _cashFlowFilter = '7_days';
 
   @override
   void initState() {
@@ -48,14 +50,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final summary = await _dashboardService.getSummary(provider.workspaceId!);
-      final weeklyData = await _dashboardService.getDailyCashFlow(provider.workspaceId!, 7);
+      final cashFlowData =
+          await _dashboardService.getCashFlowData(provider.workspaceId!, _cashFlowFilter);
       final recentTransactions =
           await _dashboardService.getRecentTransactions(provider.workspaceId!, 5);
 
       if (mounted) {
         setState(() {
           _summary = summary;
-          _weeklyData = weeklyData;
+          _cashFlowData = cashFlowData;
           _recentTransactions = recentTransactions;
           _isLoading = false;
         });
@@ -63,6 +66,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadCashFlowOnly() async {
+    final provider = context.read<AppProvider>();
+    if (provider.workspaceId == null) return;
+
+    setState(() => _isCashFlowLoading = true);
+    try {
+      final cashFlowData =
+          await _dashboardService.getCashFlowData(provider.workspaceId!, _cashFlowFilter);
+      if (mounted) {
+        setState(() {
+          _cashFlowData = cashFlowData;
+          _isCashFlowLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isCashFlowLoading = false);
       }
     }
   }
@@ -609,8 +633,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildCashFlowChart() {
-    final bool hasData = _weeklyData.isNotEmpty &&
-        _weeklyData.any((d) => ((d['income'] as double?) ?? 0) > 0 || ((d['expense'] as double?) ?? 0) > 0);
+    final bool hasData = _cashFlowData.isNotEmpty &&
+        _cashFlowData.any((d) => ((d['income'] as double?) ?? 0) > 0 || ((d['expense'] as double?) ?? 0) > 0);
 
     return Container(
       decoration: BoxDecoration(
@@ -637,7 +661,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Icon(Iconsax.chart_21, size: 20, color: AppColors.primary),
                   SizedBox(width: 6),
                   Text(
-                    'Arus Kas 7 Hari Terakhir',
+                    'Arus Kas Usaha',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -646,43 +670,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
-              if (hasData)
-                Row(
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4F6F8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.all(2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.income,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text('Masuk', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
-                    const SizedBox(width: 10),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.expense,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text('Keluar', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+                    _buildPeriodFilterItem('7 Hari', '7_days'),
+                    _buildPeriodFilterItem('Bulan', 'monthly'),
+                    _buildPeriodFilterItem('Tahun', 'yearly'),
                   ],
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _cashFlowFilter == 'monthly'
+                    ? 'Tahun ${DateTime.now().year}'
+                    : _cashFlowFilter == 'yearly'
+                        ? '5 Tahun Terakhir'
+                        : '7 Hari Terakhir',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.income,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text('Masuk', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.expense,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text('Keluar', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          if (!hasData)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+          if (_isCashFlowLoading)
+            const SizedBox(
+              height: 200,
+              child: Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (!hasData)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: EmptyState(
                   icon: Iconsax.chart_21,
                   title: 'Belum ada aktivitas arus kas',
-                  subtitle: 'Grafik transaksi 7 hari terakhir akan muncul setelah Anda mencatat pemasukan atau pengeluaran.',
+                  subtitle: _cashFlowFilter == 'monthly'
+                      ? 'Grafik transaksi bulanan tahun ${DateTime.now().year} akan muncul setelah ada pemasukan atau pengeluaran.'
+                      : _cashFlowFilter == 'yearly'
+                          ? 'Grafik transaksi tahunan akan muncul setelah ada pemasukan atau pengeluaran.'
+                          : 'Grafik transaksi 7 hari terakhir akan muncul setelah Anda mencatat pemasukan atau pengeluaran.',
                 ),
               ),
             )
@@ -696,11 +763,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final index = group.x;
+                        if (index < 0 || index >= _cashFlowData.length) return null;
+                        final item = _cashFlowData[index];
+                        final label = item['label'] ?? '';
                         final isIncome = rodIndex == 0;
-                        final label = isIncome ? 'Masuk: ' : 'Keluar: ';
+                        final typeLabel = isIncome ? 'Masuk' : 'Keluar';
                         return BarTooltipItem(
-                          '$label${CurrencyFormatter.formatRupiah(rod.toY)}',
-                          const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                          '$label\n$typeLabel: ${CurrencyFormatter.formatRupiah(rod.toY)}',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         );
                       },
                     ),
@@ -712,14 +787,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
-                          if (index >= 0 && index < _weeklyData.length) {
-                            final date = _weeklyData[index]['date'] as DateTime;
+                          if (index >= 0 && index < _cashFlowData.length) {
+                            final label = _cashFlowData[index]['label'] as String? ?? '';
                             return Padding(
                               padding: const EdgeInsets.only(top: 6),
                               child: Text(
-                                DateFormatter.formatDayMonth(date),
-                                style: const TextStyle(
-                                  fontSize: 10,
+                                label,
+                                style: TextStyle(
+                                  fontSize: _cashFlowFilter == 'monthly' ? 8.5 : 10,
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.textSecondary,
                                 ),
@@ -742,26 +817,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   borderData: FlBorderData(show: false),
                   gridData: const FlGridData(show: false),
-                  barGroups: _weeklyData.asMap().entries.map((entry) {
+                  barGroups: _cashFlowData.asMap().entries.map((entry) {
                     final income = (entry.value['income'] as double?) ?? 0;
                     final expense = (entry.value['expense'] as double?) ?? 0;
+                    final double rodWidth = _cashFlowFilter == 'monthly'
+                        ? 5.0
+                        : _cashFlowFilter == 'yearly'
+                            ? 14.0
+                            : 9.0;
                     return BarChartGroupData(
                       x: entry.key,
+                      barsSpace: 2,
                       barRods: [
                         BarChartRodData(
                           toY: income,
                           color: AppColors.income,
-                          width: 10,
+                          width: rodWidth,
                           borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(5),
+                            top: Radius.circular(4),
                           ),
                         ),
                         BarChartRodData(
                           toY: expense,
                           color: AppColors.expense,
-                          width: 10,
+                          width: rodWidth,
                           borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(5),
+                            top: Radius.circular(4),
                           ),
                         ),
                       ],
@@ -775,11 +856,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildPeriodFilterItem(String label, String value) {
+    final isSelected = _cashFlowFilter == value;
+    return InkWell(
+      onTap: () {
+        if (_cashFlowFilter != value) {
+          setState(() {
+            _cashFlowFilter = value;
+          });
+          _loadCashFlowOnly();
+        }
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
   double _getMaxY() {
     double max = 0;
-    for (final data in _weeklyData) {
-      final income = data['income'] as double;
-      final expense = data['expense'] as double;
+    for (final data in _cashFlowData) {
+      final income = (data['income'] as num?)?.toDouble() ?? 0.0;
+      final expense = (data['expense'] as num?)?.toDouble() ?? 0.0;
       if (income > max) max = income;
       if (expense > max) max = expense;
     }
