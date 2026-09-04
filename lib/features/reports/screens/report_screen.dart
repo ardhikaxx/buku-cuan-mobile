@@ -39,55 +39,71 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _loadData() async {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
-
-    setState(() => _isLoading = true);
-
-    final now = DateTime.now();
-    DateTime start;
-    DateTime end = now;
-
-    switch (_selectedPeriod) {
-      case 'Hari Ini':
-        start = DateTime(now.year, now.month, now.day);
-        break;
-      case 'Minggu Ini':
-        start = now.subtract(Duration(days: now.weekday - 1));
-        start = DateTime(start.year, start.month, start.day);
-        break;
-      case 'Bulan Ini':
-        start = DateTime(now.year, now.month, 1);
-        break;
-      case 'Custom':
-        start = _customStart ?? DateTime(now.year, now.month, 1);
-        end = _customEnd ?? now;
-        break;
-      default:
-        start = DateTime(now.year, now.month, 1);
+    if (provider.workspaceId == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
     }
 
-    final txService = TransactionService();
-    final debtService = DebtService();
-    final receivableService = ReceivableService();
-    final capitalService = CapitalService();
+    if (mounted) setState(() => _isLoading = true);
 
-    final summary = await txService.getSummaryByType(provider.workspaceId!, start, end);
-    final incomeByCat = await txService.getCategoryBreakdown(provider.workspaceId!, 'income', start, end);
-    final expenseByCat = await txService.getCategoryBreakdown(provider.workspaceId!, 'expense', start, end);
-    final totalDebt = await debtService.getTotalDebt(provider.workspaceId!);
-    final totalReceivable = await receivableService.getTotalReceivable(provider.workspaceId!);
-    final totalCapital = await capitalService.getTotalCapital(provider.workspaceId!);
+    try {
+      final now = DateTime.now();
+      DateTime start;
+      DateTime end = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
 
-    setState(() {
-      _totalIncome = summary['income'] ?? 0;
-      _totalExpense = summary['expense'] ?? 0;
-      _totalDebt = totalDebt;
-      _totalReceivable = totalReceivable;
-      _totalCapital = totalCapital;
-      _incomeByCategory = incomeByCat;
-      _expenseByCategory = expenseByCat;
-      _isLoading = false;
-    });
+      switch (_selectedPeriod) {
+        case 'Hari Ini':
+          start = DateTime(now.year, now.month, now.day, 0, 0, 0);
+          break;
+        case 'Minggu Ini':
+          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+          start = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day, 0, 0, 0);
+          break;
+        case 'Bulan Ini':
+          start = DateTime(now.year, now.month, 1, 0, 0, 0);
+          break;
+        case 'Custom':
+          start = _customStart != null
+              ? DateTime(_customStart!.year, _customStart!.month, _customStart!.day, 0, 0, 0)
+              : DateTime(now.year, now.month, 1, 0, 0, 0);
+          end = _customEnd != null
+              ? DateTime(_customEnd!.year, _customEnd!.month, _customEnd!.day, 23, 59, 59, 999)
+              : DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+          break;
+        default:
+          start = DateTime(now.year, now.month, 1, 0, 0, 0);
+      }
+
+      final txService = TransactionService();
+      final debtService = DebtService();
+      final receivableService = ReceivableService();
+      final capitalService = CapitalService();
+
+      final summary = await txService.getSummaryByType(provider.workspaceId!, start, end);
+      final incomeByCat = await txService.getCategoryBreakdown(provider.workspaceId!, 'income', start, end);
+      final expenseByCat = await txService.getCategoryBreakdown(provider.workspaceId!, 'expense', start, end);
+      final totalDebt = await debtService.getTotalDebt(provider.workspaceId!);
+      final totalReceivable = await receivableService.getTotalReceivable(provider.workspaceId!);
+      final totalCapital = await capitalService.getTotalCapital(provider.workspaceId!);
+
+      if (mounted) {
+        setState(() {
+          _totalIncome = summary['income'] ?? 0;
+          _totalExpense = summary['expense'] ?? 0;
+          _totalDebt = totalDebt;
+          _totalReceivable = totalReceivable;
+          _totalCapital = totalCapital;
+          _incomeByCategory = incomeByCat;
+          _expenseByCategory = expenseByCat;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading report data: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _selectCustomDate() async {
