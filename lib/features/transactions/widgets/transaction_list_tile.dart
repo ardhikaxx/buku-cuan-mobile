@@ -16,6 +16,7 @@ class TransactionListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIncome = transaction.isIncome;
+    final color = isIncome ? AppColors.income : AppColors.expense;
 
     return Dismissible(
       key: Key(transaction.id),
@@ -24,36 +25,51 @@ class TransactionListTile extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: AppColors.danger,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
         ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Icon(Icons.delete_outline, color: Colors.white, size: 24),
+            SizedBox(width: 8),
+            Text(
+              'Hapus',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ],
+        ),
       ),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: isIncome
-                    ? AppColors.income.withValues(alpha: 0.1)
-                    : AppColors.expense.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-                color: isIncome ? AppColors.income : AppColors.expense,
-                size: 20,
+                isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                color: color,
+                size: 22,
               ),
             ),
             const SizedBox(width: 12),
@@ -62,21 +78,42 @@ class TransactionListTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    transaction.description,
+                    transaction.description.isNotEmpty ? transaction.description : transaction.categoryName,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${transaction.categoryName} · ${DateFormatter.formatDate(transaction.date)}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.divider,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          transaction.categoryName,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        DateFormatter.formatDate(transaction.date),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textHint,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -87,7 +124,7 @@ class TransactionListTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: isIncome ? AppColors.income : AppColors.expense,
+                color: color,
               ),
             ),
           ],
