@@ -69,7 +69,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       final provider = context.read<AppProvider>();
       if (provider.workspaceId == null) return;
 
-      final amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), ''));
+      final amount = CurrencyFormatter.parseRupiah(_amountController.text);
       final now = DateTime.now();
 
       final transaction = TransactionModel(
@@ -190,6 +190,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [CurrencyInputFormatter()],
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 decoration: const InputDecoration(
                   prefixText: 'Rp ',
@@ -198,8 +199,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Masukkan nominal';
-                  final amount = double.tryParse(value.replaceAll(RegExp(r'[^0-9]'), ''));
-                  if (amount == null || amount <= 0) return 'Nominal tidak valid';
+                  final amount = CurrencyFormatter.parseRupiah(value);
+                  if (amount <= 0) return 'Nominal tidak valid';
                   return null;
                 },
               ),
