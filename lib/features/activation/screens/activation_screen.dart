@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -85,7 +86,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(
-                      Icons.account_balance_wallet,
+                      Iconsax.wallet_3,
                       size: 40,
                       color: Colors.white,
                     ),
