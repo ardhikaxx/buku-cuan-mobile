@@ -130,7 +130,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHeader() {
     final provider = context.watch<AppProvider>();
     final businessName = provider.userName ?? 'Buku Cuan';
-    final initial = businessName.isNotEmpty ? businessName[0].toUpperCase() : 'B';
 
     return Row(
       children: [
@@ -152,14 +151,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          child: Center(
-            child: Text(
-              initial,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+          child: const Center(
+            child: Icon(
+              Iconsax.wallet_2,
+              color: Colors.white,
+              size: 24,
             ),
           ),
         ),
