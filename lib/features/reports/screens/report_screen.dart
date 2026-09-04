@@ -238,8 +238,12 @@ class _ReportScreenState extends State<ReportScreen> {
                         PieChartData(
                           sections: _incomeByCategory.asMap().entries.map((entry) {
                             final colors = [
-                              AppColors.success, AppColors.primary, AppColors.income,
-                              Colors.teal, Colors.green.shade300,
+                              AppColors.primary,
+                              AppColors.receivable,
+                              AppColors.debt,
+                              const Color(0xFF8E24AA),
+                              const Color(0xFF00880C),
+                              AppColors.danger,
                             ];
                             final total = _incomeByCategory.fold<double>(
                                 0, (sum, e) => sum + (e['amount'] as double));
