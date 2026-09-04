@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/transaction_model.dart';
 import '../../../core/services/firebase_service.dart';
 
@@ -24,11 +25,14 @@ class TransactionService {
   Stream<List<TransactionModel>> getTransactions(String workspaceId) {
     return _transactionsCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TransactionModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final txns = snapshot.docs
+          .map((doc) => TransactionModel.fromFirestore(doc))
+          .toList();
+      txns.sort((a, b) => b.date.compareTo(a.date));
+      return txns;
+    });
   }
 
   Stream<List<TransactionModel>> getTransactionsByType(
@@ -36,31 +40,37 @@ class TransactionService {
     return _transactionsCollection
         .where('workspaceId', isEqualTo: workspaceId)
         .where('type', isEqualTo: type)
-        .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TransactionModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final txns = snapshot.docs
+          .map((doc) => TransactionModel.fromFirestore(doc))
+          .toList();
+      txns.sort((a, b) => b.date.compareTo(a.date));
+      return txns;
+    });
   }
 
   Stream<List<TransactionModel>> getTransactionsByDateRange(
       String workspaceId, DateTime start, DateTime end) {
     return _transactionsCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(end))
-        .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TransactionModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final txns = snapshot.docs
+          .map((doc) => TransactionModel.fromFirestore(doc))
+          .where((t) => !t.date.isBefore(start) && !t.date.isAfter(end))
+          .toList();
+      txns.sort((a, b) => b.date.compareTo(a.date));
+      return txns;
+    });
   }
 
-  Future<double> getTotalByType(String workspaceId, String type) async {
+  Future<double> getTotalByType(String workspaceId, String type, {dynamic source}) async {
     try {
+      final options = source != null ? GetOptions(source: source) : null;
       final query = await _transactionsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(options);
 
       double total = 0;
       for (final doc in query.docs) {
@@ -71,6 +81,7 @@ class TransactionService {
       }
       return total;
     } catch (e) {
+      debugPrint('Error getTotalByType($type): $e');
       return 0;
     }
   }

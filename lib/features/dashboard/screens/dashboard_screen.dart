@@ -17,6 +17,7 @@ import '../../capital/screens/capital_screen.dart';
 import '../../reminders/screens/reminder_screen.dart';
 import '../../reports/screens/export_screen.dart';
 import '../../settings/screens/settings_screen.dart';
+import '../widgets/quick_action_item.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -559,28 +560,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.money_recive,
                 label: 'Uang Masuk',
                 iconColor: const Color(0xFF00880C),
                 backgroundColor: const Color(0xFFE8F8EA),
                 onTap: () => _navigateToAddTransaction('income'),
               ),
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.money_send,
                 label: 'Uang Keluar',
                 iconColor: const Color(0xFFEE2737),
                 backgroundColor: const Color(0xFFFFEAEA),
                 onTap: () => _navigateToAddTransaction('expense'),
               ),
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.card_send,
                 label: 'Hutang',
                 iconColor: const Color(0xFFFF6D00),
                 backgroundColor: const Color(0xFFFFF3E0),
                 onTap: () => _navigateToAddDebt(),
               ),
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.card_receive,
                 label: 'Piutang',
                 iconColor: const Color(0xFF00AED6),
@@ -593,28 +594,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.bank,
                 label: 'Modal Usaha',
                 iconColor: const Color(0xFF8E24AA),
                 backgroundColor: const Color(0xFFF3E5F5),
                 onTap: () => _navigateTo(const CapitalScreen()),
               ),
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.notification_bing,
                 label: 'Pengingat',
                 iconColor: const Color(0xFFD97706),
                 backgroundColor: const Color(0xFFFEF3C7),
                 onTap: () => _navigateTo(const ReminderScreen()),
               ),
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.document_download,
                 label: 'Export Data',
                 iconColor: const Color(0xFF4338CA),
                 backgroundColor: const Color(0xFFE0E7FF),
                 onTap: () => _navigateTo(const ExportScreen()),
               ),
-              _GojekServiceItem(
+              QuickActionItem(
                 icon: Iconsax.setting_2,
                 label: 'Pengaturan',
                 iconColor: const Color(0xFF616161),
@@ -1011,68 +1012,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _navigateToAddReceivable() =>
       _navigateTo(const AddReceivableScreen());
-}
-
-class _GojekServiceItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color iconColor;
-  final Color backgroundColor;
-  final VoidCallback onTap;
-
-  const _GojekServiceItem({
-    required this.icon,
-    required this.label,
-    required this.iconColor,
-    required this.backgroundColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        splashColor: iconColor.withValues(alpha: 0.12),
-        highlightColor: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Center(
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: 28,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2E2E2E),
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

@@ -6,8 +6,10 @@ import '../../../core/services/firebase_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../activation/data/license_model.dart';
-import '../../categories/models/category_model.dart';
+import '../../categories/screens/category_screen.dart';
 import '../../reminders/screens/reminder_screen.dart';
+import '../widgets/settings_card.dart';
+import '../widgets/settings_tile.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -24,23 +26,23 @@ class SettingsScreen extends StatelessWidget {
               // Profile Section
               const Text('Profil Usaha', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              _SettingsCard(
+              SettingsCard(
                 children: [
-                  _SettingsTile(
+                  SettingsTile(
                     icon: Iconsax.shop,
                     title: 'Nama Usaha',
                     subtitle: provider.userName ?? 'Belum diatur',
                     onTap: () => _editBusinessName(context, provider),
                   ),
                   const Divider(),
-                  _SettingsTile(
+                  SettingsTile(
                     icon: Iconsax.location,
                     title: 'Alamat',
                     subtitle: 'Atur alamat usaha',
                     onTap: () {},
                   ),
                   const Divider(),
-                  _SettingsTile(
+                  SettingsTile(
                     icon: Iconsax.call,
                     title: 'Nomor WhatsApp',
                     subtitle: 'Atur nomor WhatsApp',
@@ -53,7 +55,7 @@ class SettingsScreen extends StatelessWidget {
               // License Section
               const Text('Status Lisensi', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              _SettingsCard(
+              SettingsCard(
                 children: [
                   _buildLicenseInfo(provider),
                 ],
@@ -63,21 +65,21 @@ class SettingsScreen extends StatelessWidget {
               // Other Settings
               const Text('Lainnya', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              _SettingsCard(
+              SettingsCard(
                 children: [
-                  _SettingsTile(
+                  SettingsTile(
                     icon: Iconsax.category,
                     title: 'Kategori Transaksi',
                     subtitle: 'Kelola kategori pemasukan & pengeluaran',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const _CategoryManagementScreen(),
+                        builder: (_) => const CategoryScreen(),
                       ),
                     ),
                   ),
                   const Divider(),
-                  _SettingsTile(
+                  SettingsTile(
                     icon: Iconsax.notification_bing,
                     title: 'Reminder',
                     subtitle: 'Kelola reminder pembayaran',
@@ -87,7 +89,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   const Divider(),
-                  _SettingsTile(
+                  SettingsTile(
                     icon: Iconsax.info_circle,
                     title: 'Tentang Buku Cuan',
                     subtitle: 'Versi 1.0.0',
@@ -135,14 +137,14 @@ class SettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          _InfoRow('Paket', license.packageType == PackageType.lifetime ? 'Lifetime' : '1 Bulan'),
-          _InfoRow('Status', statusText),
-          _InfoRow('Token', TokenUtils.maskToken(license.tokenKey)),
-          _InfoRow('Tanggal Aktif', DateFormatter.formatDate(license.createdAt)),
+          InfoRow('Paket', license.packageType == PackageType.lifetime ? 'Lifetime' : '1 Bulan'),
+          InfoRow('Status', statusText),
+          InfoRow('Token', TokenUtils.maskToken(license.tokenKey)),
+          InfoRow('Tanggal Aktif', DateFormatter.formatDate(license.createdAt)),
           if (license.expiredAt != null)
-            _InfoRow('Tanggal Berakhir', DateFormatter.formatDate(license.expiredAt!)),
+            InfoRow('Tanggal Berakhir', DateFormatter.formatDate(license.expiredAt!)),
           if (license.packageType == PackageType.lifetime)
-            const _InfoRow('Tanggal Berakhir', 'Selamanya'),
+            const InfoRow('Tanggal Berakhir', 'Selamanya'),
         ],
       ),
     );
@@ -222,108 +224,5 @@ class SettingsScreen extends StatelessWidget {
     if (confirm == true) {
       await provider.logout();
     }
-  }
-}
-
-class _SettingsCard extends StatelessWidget {
-  final List<Widget> children;
-
-  const _SettingsCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(children: children),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: const TextStyle(fontSize: 14)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Iconsax.arrow_right_3, size: 18),
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryManagementScreen extends StatelessWidget {
-  const _CategoryManagementScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Kategori Transaksi')),
-      body: Consumer<AppProvider>(
-        builder: (context, provider, child) {
-          final List<CategoryModel> incomeCategories = provider.categories.where((CategoryModel c) => c.isIncome).toList();
-          final List<CategoryModel> expenseCategories = provider.categories.where((CategoryModel c) => c.isExpense).toList();
-
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const Text('Kategori Pemasukan', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              ...incomeCategories.map((cat) => ListTile(
-                    title: Text(cat.name, style: const TextStyle(fontSize: 14)),
-                    trailing: const Icon(Iconsax.arrow_right_3, size: 18),
-                    contentPadding: EdgeInsets.zero,
-                  )),
-              const SizedBox(height: 16),
-              const Text('Kategori Pengeluaran', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              ...expenseCategories.map((cat) => ListTile(
-                    title: Text(cat.name, style: const TextStyle(fontSize: 14)),
-                    trailing: const Icon(Iconsax.arrow_right_3, size: 18),
-                    contentPadding: EdgeInsets.zero,
-                  )),
-            ],
-          );
-        },
-      ),
-    );
   }
 }

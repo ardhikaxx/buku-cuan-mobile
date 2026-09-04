@@ -8,6 +8,8 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/constants/app_constants.dart';
 import '../models/capital_model.dart';
 import '../services/capital_service.dart';
+import '../widgets/capital_list_tile.dart';
+import '../widgets/capital_summary_card.dart';
 
 class CapitalScreen extends StatefulWidget {
   const CapitalScreen({super.key});
@@ -126,36 +128,7 @@ class _CapitalScreenState extends State<CapitalScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF006C0E), Color(0xFF00AA13)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF00AA13).withValues(alpha: 0.25),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Text('Total Modal',
-                          style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-                      const SizedBox(height: 6),
-                      Text(
-                        CurrencyFormatter.formatRupiah(_totalCapital),
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: -0.5),
-                      ),
-                    ],
-                  ),
-                ),
+                CapitalSummaryCard(totalCapital: _totalCapital),
                 const SizedBox(height: 16),
                 if (_capitals.isEmpty)
                   const Center(
@@ -168,53 +141,7 @@ class _CapitalScreenState extends State<CapitalScreen> {
                       ),
                     ),
                   ),
-                ...(_capitals.map((c) => Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: (c.isWithdrawal ? AppColors.danger : AppColors.success).withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              c.isWithdrawal ? Iconsax.money_send : Iconsax.money_recive,
-                              color: c.isWithdrawal ? AppColors.danger : AppColors.success,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(AppConstants.capitalTypeLabels[c.type] ?? c.type,
-                                    style: const TextStyle(
-                                        fontSize: 14, fontWeight: FontWeight.w600)),
-                                Text(DateFormatter.formatDate(c.date),
-                                    style: const TextStyle(
-                                        fontSize: 12, color: AppColors.textSecondary)),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            '${c.isWithdrawal ? '-' : '+'}${CurrencyFormatter.formatRupiah(c.amount)}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: c.isWithdrawal ? AppColors.danger : AppColors.success,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ))),
+                ...(_capitals.map((c) => CapitalListTile(capital: c))),
               ],
             ),
       floatingActionButton: FloatingActionButton(

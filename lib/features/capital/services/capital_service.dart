@@ -21,11 +21,14 @@ class CapitalService {
   Stream<List<CapitalModel>> getCapital(String workspaceId) {
     return _capitalCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => CapitalModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final capitals = snapshot.docs
+          .map((doc) => CapitalModel.fromFirestore(doc))
+          .toList();
+      capitals.sort((a, b) => b.date.compareTo(a.date));
+      return capitals;
+    });
   }
 
   Future<double> getTotalCapital(String workspaceId) async {

@@ -185,15 +185,28 @@ class DashboardService {
 
   Future<List<TransactionModel>> getRecentTransactions(
       String workspaceId, int limit) async {
-    final query = await FirebaseService.firestore
-        .collection('transactions')
-        .where('workspaceId', isEqualTo: workspaceId)
-        .orderBy('date', descending: true)
-        .limit(limit)
-        .get();
+    try {
+      final query = await FirebaseService.firestore
+          .collection('transactions')
+          .where('workspaceId', isEqualTo: workspaceId)
+          .orderBy('date', descending: true)
+          .limit(limit)
+          .get();
 
-    return query.docs
-        .map((doc) => TransactionModel.fromFirestore(doc))
-        .toList();
+      return query.docs
+          .map((doc) => TransactionModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      final query = await FirebaseService.firestore
+          .collection('transactions')
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
+
+      final docs = query.docs
+          .map((doc) => TransactionModel.fromFirestore(doc))
+          .toList();
+      docs.sort((a, b) => b.date.compareTo(a.date));
+      return docs.take(limit).toList();
+    }
   }
 }

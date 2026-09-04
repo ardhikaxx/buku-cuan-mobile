@@ -27,22 +27,28 @@ class ReminderService {
   Stream<List<ReminderModel>> getReminders(String workspaceId) {
     return _remindersCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .orderBy('dueDate', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ReminderModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final reminders = snapshot.docs
+          .map((doc) => ReminderModel.fromFirestore(doc))
+          .toList();
+      reminders.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      return reminders;
+    });
   }
 
   Stream<List<ReminderModel>> getActiveReminders(String workspaceId) {
     return _remindersCollection
         .where('workspaceId', isEqualTo: workspaceId)
         .where('isCompleted', isEqualTo: false)
-        .orderBy('dueDate')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ReminderModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final reminders = snapshot.docs
+          .map((doc) => ReminderModel.fromFirestore(doc))
+          .toList();
+      reminders.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      return reminders;
+    });
   }
 
   Future<List<ReminderModel>> getUpcomingReminders(

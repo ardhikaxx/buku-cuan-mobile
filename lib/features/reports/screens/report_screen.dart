@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../../transactions/services/transaction_service.dart';
-import '../../debts/services/debt_service.dart';
-import '../../receivables/services/receivable_service.dart';
-import '../../capital/services/capital_service.dart';
+import '../services/report_service.dart';
+import '../widgets/report_category_breakdown.dart';
+import '../widgets/report_filter_bar.dart';
+import '../widgets/report_summary_card.dart';
 import 'export_screen.dart';
 
 class ReportScreen extends StatefulWidget {
@@ -20,6 +19,7 @@ class ReportScreen extends StatefulWidget {
 }
 
 class _ReportScreenState extends State<ReportScreen> {
+  final ReportService _reportService = ReportService();
   String _selectedPeriod = 'Bulan Ini';
   DateTime? _customStart;
   DateTime? _customEnd;
@@ -96,27 +96,21 @@ class _ReportScreenState extends State<ReportScreen> {
       _currentStartDate = start;
       _currentEndDate = end;
 
-      final txService = TransactionService();
-      final debtService = DebtService();
-      final receivableService = ReceivableService();
-      final capitalService = CapitalService();
-
-      final summary = await txService.getSummaryByType(provider.workspaceId!, start, end);
-      final incomeByCat = await txService.getCategoryBreakdown(provider.workspaceId!, 'income', start, end);
-      final expenseByCat = await txService.getCategoryBreakdown(provider.workspaceId!, 'expense', start, end);
-      final totalDebt = await debtService.getTotalDebt(provider.workspaceId!);
-      final totalReceivable = await receivableService.getTotalReceivable(provider.workspaceId!);
-      final totalCapital = await capitalService.getTotalCapital(provider.workspaceId!);
+      final data = await _reportService.getReportData(
+        workspaceId: provider.workspaceId!,
+        start: start,
+        end: end,
+      );
 
       if (mounted) {
         setState(() {
-          _totalIncome = summary['income'] ?? 0;
-          _totalExpense = summary['expense'] ?? 0;
-          _totalDebt = totalDebt;
-          _totalReceivable = totalReceivable;
-          _totalCapital = totalCapital;
-          _incomeByCategory = incomeByCat;
-          _expenseByCategory = expenseByCat;
+          _totalIncome = data['totalIncome'] ?? 0.0;
+          _totalExpense = data['totalExpense'] ?? 0.0;
+          _totalDebt = data['totalDebt'] ?? 0.0;
+          _totalReceivable = data['totalReceivable'] ?? 0.0;
+          _totalCapital = data['totalCapital'] ?? 0.0;
+          _incomeByCategory = data['incomeByCategory'] ?? [];
+          _expenseByCategory = data['expenseByCategory'] ?? [];
           _isLoading = false;
         });
       }
@@ -210,7 +204,20 @@ class _ReportScreenState extends State<ReportScreen> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 children: [
-                  _buildFilterSection(),
+                  ReportFilterBar(
+                    selectedPeriod: _selectedPeriod,
+                    activeDateRangeText: _getActiveDateRangeText(),
+                    onPeriodSelected: (period) {
+                      if (_selectedPeriod == period && period != 'Kustom') return;
+                      setState(() => _selectedPeriod = period);
+                      if (period == 'Kustom') {
+                        _selectCustomDate();
+                      } else {
+                        _loadData();
+                      }
+                    },
+                    onCustomDateTap: _selectCustomDate,
+                  ),
                   const SizedBox(height: 14),
 
                   // Summary Section Title
@@ -234,21 +241,21 @@ class _ReportScreenState extends State<ReportScreen> {
                   const SizedBox(height: 10),
 
                   // Summary Cards
-                  _SummaryCard(
+                  ReportSummaryCard(
                     label: 'Total Pemasukan',
                     amount: _totalIncome,
                     color: AppColors.income,
                     icon: Iconsax.money_recive,
                   ),
                   const SizedBox(height: 8),
-                  _SummaryCard(
+                  ReportSummaryCard(
                     label: 'Total Pengeluaran',
                     amount: _totalExpense,
                     color: AppColors.expense,
                     icon: Iconsax.money_send,
                   ),
                   const SizedBox(height: 8),
-                  _SummaryCard(
+                  ReportSummaryCard(
                     label: 'Laba Bersih',
                     amount: netProfit,
                     color: netProfit >= 0 ? AppColors.income : AppColors.expense,
@@ -256,7 +263,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     badge: netProfit >= 0 ? 'Surplus' : 'Defisit',
                   ),
                   const SizedBox(height: 8),
-                  _SummaryCard(
+                  ReportSummaryCard(
                     label: 'Total Modal Usaha',
                     amount: _totalCapital,
                     color: const Color(0xFF8E24AA),
@@ -266,7 +273,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _SummaryCard(
+                        child: ReportSummaryCard(
                           label: 'Hutang',
                           amount: _totalDebt,
                           color: AppColors.debt,
@@ -276,7 +283,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _SummaryCard(
+                        child: ReportSummaryCard(
                           label: 'Piutang',
                           amount: _totalReceivable,
                           color: AppColors.receivable,
@@ -307,7 +314,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
                   // Income Category Breakdown
                   if (_incomeByCategory.isNotEmpty) ...[
-                    _buildCategoryBreakdownCard(
+                    ReportCategoryBreakdown(
                       title: 'Pemasukan per Kategori',
                       icon: Iconsax.money_recive,
                       headerColor: AppColors.income,
@@ -326,7 +333,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
                   // Expense Category Breakdown
                   if (_expenseByCategory.isNotEmpty) ...[
-                    _buildCategoryBreakdownCard(
+                    ReportCategoryBreakdown(
                       title: 'Pengeluaran per Kategori',
                       icon: Iconsax.money_send,
                       headerColor: AppColors.expense,
@@ -345,439 +352,6 @@ class _ReportScreenState extends State<ReportScreen> {
                   const SizedBox(height: 16),
                 ],
               ),
-            ),
-    );
-  }
-
-  Widget _buildFilterSection() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Iconsax.filter_edit, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              const Text(
-                'Filter Periode',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const Spacer(),
-              if (_selectedPeriod == 'Kustom')
-                InkWell(
-                  onTap: _selectCustomDate,
-                  borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    child: Row(
-                      children: [
-                        Icon(Iconsax.edit_2, size: 13, color: AppColors.primary),
-                        SizedBox(width: 4),
-                        Text(
-                          'Ubah Rentang',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                _buildFilterPill('Hari Ini', Iconsax.calendar_1),
-                _buildFilterPill('Minggu Ini', Iconsax.calendar_2),
-                _buildFilterPill('Bulan Ini', Iconsax.calendar),
-                _buildFilterPill('Bulan Lalu', Iconsax.calendar_edit),
-                _buildFilterPill('Tahun Ini', Iconsax.calendar_circle),
-                _buildFilterPill('Kustom', Iconsax.calendar_search),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          InkWell(
-            onTap: _selectedPeriod == 'Kustom' ? _selectCustomDate : null,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F8EA),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Iconsax.calendar_tick, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Menampilkan data periode:',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 1),
-                        Text(
-                          _getActiveDateRangeText(),
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF006C0E),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (_selectedPeriod == 'Kustom')
-                    const Icon(Iconsax.arrow_right_3, size: 14, color: AppColors.primary),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterPill(String period, IconData icon) {
-    final isSelected = _selectedPeriod == period;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: () {
-          if (_selectedPeriod == period && period != 'Kustom') return;
-          setState(() => _selectedPeriod = period);
-          if (period == 'Kustom') {
-            _selectCustomDate();
-          } else {
-            _loadData();
-          }
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : const Color(0xFFF4F6F8),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.25),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 14,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                period,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryBreakdownCard({
-    required String title,
-    required IconData icon,
-    required Color headerColor,
-    required List<Map<String, dynamic>> items,
-    required List<Color> palette,
-  }) {
-    final total = items.fold<double>(0, (sum, e) => sum + ((e['amount'] as num?)?.toDouble() ?? 0.0));
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: headerColor),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (total > 0) ...[
-            SizedBox(
-              height: 170,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 36,
-                  sections: items.asMap().entries.map((entry) {
-                    final amount = (entry.value['amount'] as num?)?.toDouble() ?? 0.0;
-                    final percentage = total > 0 ? (amount / total * 100) : 0.0;
-                    final color = palette[entry.key % palette.length];
-                    return PieChartSectionData(
-                      value: amount,
-                      title: percentage >= 5 ? '${percentage.toStringAsFixed(0)}%' : '',
-                      color: color,
-                      radius: 46,
-                      titleStyle: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-          ],
-          ...items.asMap().entries.map((entry) {
-            final color = palette[entry.key % palette.length];
-            final amount = (entry.value['amount'] as num?)?.toDouble() ?? 0.0;
-            final category = entry.value['category'] as String? ?? 'Lainnya';
-            final percentage = total > 0 ? (amount / total * 100) : 0.0;
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      category,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${percentage.toStringAsFixed(1)}%',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    CurrencyFormatter.formatRupiah(amount),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String label;
-  final double amount;
-  final Color color;
-  final IconData? icon;
-  final String? badge;
-  final bool isVertical;
-
-  const _SummaryCard({
-    required this.label,
-    required this.amount,
-    required this.color,
-    this.icon,
-    this.badge,
-    this.isVertical = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: isVertical
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, size: 14, color: color),
-                      const SizedBox(width: 4),
-                    ],
-                    Expanded(
-                      child: Text(
-                        label,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    CurrencyFormatter.formatRupiah(amount),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : Row(
-              children: [
-                if (icon != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(icon, size: 16, color: color),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Expanded(
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                if (badge != null) ...[
-                  Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      badge!,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                    ),
-                  ),
-                ],
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      CurrencyFormatter.formatRupiah(amount),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
     );
   }

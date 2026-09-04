@@ -44,22 +44,28 @@ class DebtService {
   Stream<List<DebtModel>> getDebts(String workspaceId) {
     return _debtsCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .orderBy('dueDate', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => DebtModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final debts = snapshot.docs
+          .map((doc) => DebtModel.fromFirestore(doc))
+          .toList();
+      debts.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      return debts;
+    });
   }
 
   Stream<List<DebtModel>> getActiveDebts(String workspaceId) {
     return _debtsCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .where('status', isNotEqualTo: 'lunas')
-        .orderBy('dueDate')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => DebtModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final debts = snapshot.docs
+          .map((doc) => DebtModel.fromFirestore(doc))
+          .where((d) => d.status != DebtStatus.paid)
+          .toList();
+      debts.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      return debts;
+    });
   }
 
   Future<double> getTotalDebt(String workspaceId) async {

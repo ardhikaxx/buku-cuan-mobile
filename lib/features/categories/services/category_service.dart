@@ -22,11 +22,14 @@ class CategoryService {
   Stream<List<CategoryModel>> getCategories(String workspaceId) {
     return _categoriesCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .orderBy('name')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => CategoryModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final cats = snapshot.docs
+          .map((doc) => CategoryModel.fromFirestore(doc))
+          .toList();
+      cats.sort((a, b) => a.name.compareTo(b.name));
+      return cats;
+    });
   }
 
   Stream<List<CategoryModel>> getCategoriesByType(
@@ -34,11 +37,14 @@ class CategoryService {
     return _categoriesCollection
         .where('workspaceId', isEqualTo: workspaceId)
         .where('type', isEqualTo: type)
-        .orderBy('name')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => CategoryModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final cats = snapshot.docs
+          .map((doc) => CategoryModel.fromFirestore(doc))
+          .toList();
+      cats.sort((a, b) => a.name.compareTo(b.name));
+      return cats;
+    });
   }
 
   Future<void> initializeDefaultCategories(String workspaceId) async {

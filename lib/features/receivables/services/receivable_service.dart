@@ -44,22 +44,28 @@ class ReceivableService {
   Stream<List<ReceivableModel>> getReceivables(String workspaceId) {
     return _receivablesCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .orderBy('dueDate', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ReceivableModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final receivables = snapshot.docs
+          .map((doc) => ReceivableModel.fromFirestore(doc))
+          .toList();
+      receivables.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      return receivables;
+    });
   }
 
   Stream<List<ReceivableModel>> getActiveReceivables(String workspaceId) {
     return _receivablesCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .where('status', isNotEqualTo: 'paid')
-        .orderBy('dueDate')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ReceivableModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+      final receivables = snapshot.docs
+          .map((doc) => ReceivableModel.fromFirestore(doc))
+          .where((r) => r.status != ReceivableStatus.paid)
+          .toList();
+      receivables.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      return receivables;
+    });
   }
 
   Future<double> getTotalReceivable(String workspaceId) async {
