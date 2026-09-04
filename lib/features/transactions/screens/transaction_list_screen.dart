@@ -18,9 +18,13 @@ class TransactionListScreen extends StatefulWidget {
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
   final TransactionService _transactionService = TransactionService();
-  List<TransactionModel> _transactions = [];
+  final TextEditingController _searchController = TextEditingController();
+  List<TransactionModel> _allTransactions = [];
+  List<TransactionModel> _filteredTransactions = [];
   bool _isLoading = true;
+  bool _isSearching = false;
   String _filterType = 'all';
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -28,49 +32,118 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     _loadTransactions();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _loadTransactions() {
     final provider = context.read<AppProvider>();
     if (provider.workspaceId == null) return;
 
     _transactionService.getTransactions(provider.workspaceId!).listen((transactions) {
-      setState(() {
-        _transactions = _filterTransactions(transactions);
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _allTransactions = transactions;
+          _filteredTransactions = _applyFilterAndSearch(transactions);
+          _isLoading = false;
+        });
+      }
     });
   }
 
-  List<TransactionModel> _filterTransactions(List<TransactionModel> all) {
-    if (_filterType == 'all') return all;
-    return all.where((t) => t.type == _filterType).toList();
+  List<TransactionModel> _applyFilterAndSearch(List<TransactionModel> all) {
+    return all.where((t) {
+      final matchesFilter = _filterType == 'all' || t.type == _filterType;
+      if (!matchesFilter) return false;
+
+      if (_searchQuery.isEmpty) return true;
+      final q = _searchQuery.toLowerCase();
+      final matchDesc = t.description.toLowerCase().contains(q);
+      final matchCat = t.categoryName.toLowerCase().contains(q);
+      final matchNotes = t.notes?.toLowerCase().contains(q) ?? false;
+      final matchAmount = t.amount.toString().contains(q);
+
+      return matchDesc || matchCat || matchNotes || matchAmount;
+    }).toList();
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query.trim();
+      _filteredTransactions = _applyFilterAndSearch(_allTransactions);
+    });
+  }
+
+  void _stopSearching() {
+    setState(() {
+      _isSearching = false;
+      _searchQuery = '';
+      _searchController.clear();
+      _filteredTransactions = _applyFilterAndSearch(_allTransactions);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transaksi'),
+        leading: _isSearching
+            ? IconButton(
+                icon: const Icon(Iconsax.arrow_left),
+                onPressed: _stopSearching,
+              )
+            : null,
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: const TextStyle(fontSize: 16),
+                decoration: const InputDecoration(
+                  hintText: 'Cari keterangan, kategori, nominal...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
+                ),
+                onChanged: _onSearchChanged,
+              )
+            : const Text('Transaksi'),
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              setState(() {
-                _filterType = value;
-                _isLoading = true;
-              });
-              _loadTransactions();
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'all', child: Text('Semua')),
-              const PopupMenuItem(value: 'income', child: Text('Pemasukan')),
-              const PopupMenuItem(value: 'expense', child: Text('Pengeluaran')),
-            ],
-            icon: const Icon(Iconsax.filter),
-          ),
+          if (_isSearching) ...[
+            if (_searchController.text.isNotEmpty)
+              IconButton(
+                icon: const Icon(Iconsax.close_circle, size: 20),
+                onPressed: () {
+                  _searchController.clear();
+                  _onSearchChanged('');
+                },
+              ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(Iconsax.search_normal),
+              tooltip: 'Cari Transaksi',
+              onPressed: () => setState(() => _isSearching = true),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                setState(() {
+                  _filterType = value;
+                  _filteredTransactions = _applyFilterAndSearch(_allTransactions);
+                });
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'all', child: Text('Semua')),
+                const PopupMenuItem(value: 'income', child: Text('Pemasukan')),
+                const PopupMenuItem(value: 'expense', child: Text('Pengeluaran')),
+              ],
+              icon: const Icon(Iconsax.filter),
+            ),
+          ],
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _transactions.isEmpty
+          : _allTransactions.isEmpty
               ? LayoutBuilder(
                   builder: (context, constraints) => RefreshIndicator(
                     onRefresh: () async => _loadTransactions(),
@@ -97,19 +170,29 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     ),
                   ),
                 )
-              : RefreshIndicator(
-                  onRefresh: () async => _loadTransactions(),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _transactions.length,
-                    itemBuilder: (context, index) {
-                      return TransactionListTile(
-                        transaction: _transactions[index],
-                        onDelete: () => _deleteTransaction(_transactions[index]),
-                      );
-                    },
-                  ),
-                ),
+              : _filteredTransactions.isEmpty
+                  ? Center(
+                      child: EmptyState(
+                        icon: Iconsax.search_normal,
+                        title: 'Transaksi tidak ditemukan',
+                        subtitle: _searchQuery.isNotEmpty
+                            ? 'Tidak ada transaksi yang sesuai dengan "$_searchQuery".'
+                            : 'Tidak ada transaksi dengan filter yang dipilih.',
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () async => _loadTransactions(),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _filteredTransactions.length,
+                        itemBuilder: (context, index) {
+                          return TransactionListTile(
+                            transaction: _filteredTransactions[index],
+                            onDelete: () => _deleteTransaction(_filteredTransactions[index]),
+                          );
+                        },
+                      ),
+                    ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
