@@ -48,11 +48,31 @@ class _ReceivableListScreenState extends State<ReceivableListScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _receivables.isEmpty
-              ? const EmptyState(
-                  icon: Icons.request_page,
-                  title: 'Belum ada piutang',
-                  subtitle: 'Catat piutang dari pelanggan Anda.',
-                  actionLabel: 'Tambah Piutang',
+              ? LayoutBuilder(
+                  builder: (context, constraints) => RefreshIndicator(
+                    onRefresh: () async => _loadReceivables(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: Center(
+                          child: EmptyState(
+                            icon: Icons.request_page,
+                            title: 'Belum ada piutang',
+                            subtitle: 'Catat piutang dari pelanggan Anda.',
+                            actionLabel: 'Tambah Piutang',
+                            onAction: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AddReceivableScreen()),
+                              );
+                              _loadReceivables();
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 )
               : RefreshIndicator(
                   onRefresh: () async => _loadReceivables(),
