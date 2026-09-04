@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../dashboard/services/dashboard_service.dart';
 import '../../transactions/models/transaction_model.dart';
+import '../../transactions/services/transaction_service.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../../transactions/screens/transaction_list_screen.dart';
 import '../../transactions/widgets/transaction_list_tile.dart';
@@ -28,6 +30,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final DashboardService _dashboardService = DashboardService();
+  final TransactionService _transactionService = TransactionService();
+  StreamSubscription<List<TransactionModel>>? _txSubscription;
   Map<String, double> _summary = {};
   List<Map<String, dynamic>> _cashFlowData = [];
   List<TransactionModel> _recentTransactions = [];
@@ -35,6 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isCashFlowLoading = false;
   bool _isBalanceVisible = true;
   String _cashFlowFilter = '7_days';
+  String? _lastWorkspaceId;
 
   @override
   void initState() {
@@ -42,19 +47,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<AppProvider>();
+    final wid = provider.workspaceId;
+    if (wid != null && wid.isNotEmpty && wid != _lastWorkspaceId) {
+      _lastWorkspaceId = wid;
+      _loadData();
+      _setupRealtimeSubscription(wid);
+    }
+  }
+
+  void _setupRealtimeSubscription(String workspaceId) {
+    _txSubscription?.cancel();
+    _txSubscription = _transactionService.getTransactions(workspaceId).listen(
+      (_) => _loadData(silent: true),
+      onError: (e) => debugPrint('Dashboard realtime stream error: $e'),
+    );
+  }
+
+  @override
+  void dispose() {
+    _txSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadData({bool silent = false}) async {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) {
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) {
       if (mounted) setState(() => _isLoading = false);
       return;
     }
 
+    if (!silent && _summary.isEmpty) {
+      if (mounted) setState(() => _isLoading = true);
+    }
+
     try {
-      final summary = await _dashboardService.getSummary(provider.workspaceId!);
+      final summary = await _dashboardService.getSummary(wid);
       final cashFlowData =
-          await _dashboardService.getCashFlowData(provider.workspaceId!, _cashFlowFilter);
+          await _dashboardService.getCashFlowData(wid, _cashFlowFilter);
       final recentTransactions =
-          await _dashboardService.getRecentTransactions(provider.workspaceId!, 5);
+          await _dashboardService.getRecentTransactions(wid, 5);
 
       if (mounted) {
         setState(() {
@@ -64,7 +100,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _isLoading = false;
         });
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Error loading dashboard data: $e\n$stack');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -73,12 +110,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadCashFlowOnly() async {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) return;
 
     setState(() => _isCashFlowLoading = true);
     try {
       final cashFlowData =
-          await _dashboardService.getCashFlowData(provider.workspaceId!, _cashFlowFilter);
+          await _dashboardService.getCashFlowData(wid, _cashFlowFilter);
       if (mounted) {
         setState(() {
           _cashFlowData = cashFlowData;

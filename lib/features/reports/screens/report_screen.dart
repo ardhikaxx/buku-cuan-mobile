@@ -35,15 +35,29 @@ class _ReportScreenState extends State<ReportScreen> {
   List<Map<String, dynamic>> _incomeByCategory = [];
   List<Map<String, dynamic>> _expenseByCategory = [];
 
+  String? _lastWorkspaceId;
+
   @override
   void initState() {
     super.initState();
     _loadData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<AppProvider>();
+    final wid = provider.workspaceId;
+    if (wid != null && wid.isNotEmpty && wid != _lastWorkspaceId) {
+      _lastWorkspaceId = wid;
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) {
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) {
       if (mounted) setState(() => _isLoading = false);
       return;
     }

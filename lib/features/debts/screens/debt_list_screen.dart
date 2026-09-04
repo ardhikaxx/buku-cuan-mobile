@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -20,8 +21,10 @@ class DebtListScreen extends StatefulWidget {
 
 class _DebtListScreenState extends State<DebtListScreen> {
   final DebtService _debtService = DebtService();
+  StreamSubscription<List<DebtModel>>? _subscription;
   List<DebtModel> _debts = [];
   bool _isLoading = true;
+  String? _lastWorkspaceId;
 
   @override
   void initState() {
@@ -29,16 +32,48 @@ class _DebtListScreenState extends State<DebtListScreen> {
     _loadDebts();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<AppProvider>();
+    final wid = provider.workspaceId;
+    if (wid != null && wid.isNotEmpty && wid != _lastWorkspaceId) {
+      _lastWorkspaceId = wid;
+      _loadDebts();
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   void _loadDebts() {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
-    _debtService.getDebts(provider.workspaceId!).listen((debts) {
-      setState(() {
-        _debts = debts;
-        _isLoading = false;
-      });
-    });
+    _subscription?.cancel();
+    _subscription = _debtService.getDebts(wid).listen(
+      (debts) {
+        if (mounted) {
+          setState(() {
+            _debts = debts;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (e) {
+        debugPrint('Debt stream error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
   }
 
   @override

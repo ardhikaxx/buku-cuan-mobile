@@ -2,12 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/transaction_model.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/utils/formatters.dart';
 
 class TransactionService {
   final CollectionReference _transactionsCollection =
       FirebaseService.firestore.collection('transactions');
-
-  static const _server = GetOptions(source: Source.server);
 
   Future<void> addTransaction(TransactionModel transaction) async {
     await _transactionsCollection.doc(transaction.id).set(transaction.toFirestore());
@@ -67,17 +66,42 @@ class TransactionService {
     });
   }
 
+  Future<Map<String, double>> getTotals(String workspaceId) async {
+    try {
+      final query = await _transactionsCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
+
+      double income = 0;
+      double expense = 0;
+      for (final doc in query.docs) {
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        final type = data['type']?.toString();
+        final amount = SafeParser.parseDouble(data['amount']);
+        if (type == 'income') {
+          income += amount;
+        } else if (type == 'expense') {
+          expense += amount;
+        }
+      }
+      return {'income': income, 'expense': expense};
+    } catch (e) {
+      debugPrint('Error getTotals: $e');
+      return {'income': 0, 'expense': 0};
+    }
+  }
+
   Future<double> getTotalByType(String workspaceId, String type) async {
     try {
       final query = await _transactionsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       double total = 0;
       for (final doc in query.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        if (data['type'] == type) {
-          total += (data['amount'] ?? 0).toDouble();
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        if (data['type']?.toString() == type) {
+          total += SafeParser.parseDouble(data['amount']);
         }
       }
       return total;
@@ -92,29 +116,24 @@ class TransactionService {
     try {
       final query = await _transactionsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       double income = 0;
       double expense = 0;
 
       for (final doc in query.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final ts = data['date'];
-        DateTime? date;
-        if (ts is Timestamp) {
-          date = ts.toDate();
-        } else if (ts is String) {
-          date = DateTime.tryParse(ts);
-        }
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        final date = SafeParser.parseDateTime(data['date']);
 
-        if (date != null && (date.isBefore(start) || date.isAfter(end))) {
+        if (date.isBefore(start) || date.isAfter(end)) {
           continue;
         }
 
-        final amount = (data['amount'] ?? 0).toDouble();
-        if (data['type'] == 'income') {
+        final amount = SafeParser.parseDouble(data['amount']);
+        final type = data['type']?.toString();
+        if (type == 'income') {
           income += amount;
-        } else if (data['type'] == 'expense') {
+        } else if (type == 'expense') {
           expense += amount;
         }
       }
@@ -130,27 +149,21 @@ class TransactionService {
     try {
       final query = await _transactionsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       final Map<String, double> breakdown = {};
       for (final doc in query.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        if (data['type'] != type) continue;
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        if (data['type']?.toString() != type) continue;
 
-        final ts = data['date'];
-        DateTime? date;
-        if (ts is Timestamp) {
-          date = ts.toDate();
-        } else if (ts is String) {
-          date = DateTime.tryParse(ts);
-        }
+        final date = SafeParser.parseDateTime(data['date']);
 
-        if (date != null && (date.isBefore(start) || date.isAfter(end))) {
+        if (date.isBefore(start) || date.isAfter(end)) {
           continue;
         }
 
-        final categoryName = data['categoryName'] ?? 'Lainnya';
-        final amount = (data['amount'] ?? 0).toDouble();
+        final categoryName = data['categoryName']?.toString() ?? 'Lainnya';
+        final amount = SafeParser.parseDouble(data['amount']);
         breakdown[categoryName] = (breakdown[categoryName] ?? 0) + amount;
       }
 

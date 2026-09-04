@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -18,8 +19,10 @@ class ReceivableListScreen extends StatefulWidget {
 
 class _ReceivableListScreenState extends State<ReceivableListScreen> {
   final ReceivableService _receivableService = ReceivableService();
+  StreamSubscription<List<ReceivableModel>>? _subscription;
   List<ReceivableModel> _receivables = [];
   bool _isLoading = true;
+  String? _lastWorkspaceId;
 
   @override
   void initState() {
@@ -27,16 +30,48 @@ class _ReceivableListScreenState extends State<ReceivableListScreen> {
     _loadReceivables();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<AppProvider>();
+    final wid = provider.workspaceId;
+    if (wid != null && wid.isNotEmpty && wid != _lastWorkspaceId) {
+      _lastWorkspaceId = wid;
+      _loadReceivables();
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   void _loadReceivables() {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
-    _receivableService.getReceivables(provider.workspaceId!).listen((receivables) {
-      setState(() {
-        _receivables = receivables;
-        _isLoading = false;
-      });
-    });
+    _subscription?.cancel();
+    _subscription = _receivableService.getReceivables(wid).listen(
+      (receivables) {
+        if (mounted) {
+          setState(() {
+            _receivables = receivables;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (e) {
+        debugPrint('Receivable stream error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
   }
 
   @override

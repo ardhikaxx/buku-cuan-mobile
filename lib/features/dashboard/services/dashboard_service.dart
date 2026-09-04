@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/utils/formatters.dart';
 import '../../transactions/models/transaction_model.dart';
@@ -8,15 +7,15 @@ import '../../receivables/services/receivable_service.dart';
 import '../../capital/services/capital_service.dart';
 
 class DashboardService {
-  static const _server = GetOptions(source: Source.server);
   final TransactionService _transactionService = TransactionService();
   final DebtService _debtService = DebtService();
   final ReceivableService _receivableService = ReceivableService();
   final CapitalService _capitalService = CapitalService();
 
   Future<Map<String, double>> getSummary(String workspaceId) async {
-    final totalIncome = await _transactionService.getTotalByType(workspaceId, 'income');
-    final totalExpense = await _transactionService.getTotalByType(workspaceId, 'expense');
+    final totals = await _transactionService.getTotals(workspaceId);
+    final totalIncome = totals['income'] ?? 0.0;
+    final totalExpense = totals['expense'] ?? 0.0;
     final totalDebt = await _debtService.getTotalDebt(workspaceId);
     final totalReceivable = await _receivableService.getTotalReceivable(workspaceId);
     final totalCapital = await _capitalService.getTotalCapital(workspaceId);
@@ -47,8 +46,8 @@ class DashboardService {
     );
 
     return [
-      {'label': 'Pemasukan', 'value': summary['income'] ?? 0},
-      {'label': 'Pengeluaran', 'value': summary['expense'] ?? 0},
+      {'label': 'Pemasukan', 'value': summary['income'] ?? 0.0},
+      {'label': 'Pengeluaran', 'value': summary['expense'] ?? 0.0},
     ];
   }
 
@@ -66,25 +65,51 @@ class DashboardService {
   Future<List<Map<String, dynamic>>> getDailyCashFlow(
       String workspaceId, int days) async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDay = today.subtract(Duration(days: days - 1));
+
+    final query = await FirebaseService.firestore
+        .collection('transactions')
+        .where('workspaceId', isEqualTo: workspaceId)
+        .get();
+
     final List<Map<String, dynamic>> data = [];
+    final Map<String, Map<String, double>> dailyMap = {};
 
-    for (int i = days - 1; i >= 0; i--) {
-      final date = now.subtract(Duration(days: i));
-      final start = DateTime(date.year, date.month, date.day);
-      final end = start.add(const Duration(days: 1));
-
-      final summary = await _transactionService.getSummaryByType(
-        workspaceId,
-        start,
-        end,
-      );
-
+    for (int i = 0; i < days; i++) {
+      final date = startDay.add(Duration(days: i));
+      final key = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      dailyMap[key] = {'income': 0.0, 'expense': 0.0};
       data.add({
-        'label': DateFormatter.formatDayMonth(start),
-        'date': start,
-        'income': summary['income'] ?? 0.0,
-        'expense': summary['expense'] ?? 0.0,
+        'label': DateFormatter.formatDayMonth(date),
+        'date': date,
+        'key': key,
+        'income': 0.0,
+        'expense': 0.0,
       });
+    }
+
+    for (final doc in query.docs) {
+      final d = doc.data() as Map<String, dynamic>? ?? {};
+      final date = SafeParser.parseDateTime(d['date']);
+      final key = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+      if (dailyMap.containsKey(key)) {
+        final amount = SafeParser.parseDouble(d['amount']);
+        final type = d['type']?.toString();
+        if (type == 'income') {
+          dailyMap[key]!['income'] = (dailyMap[key]!['income'] ?? 0.0) + amount;
+        } else if (type == 'expense') {
+          dailyMap[key]!['expense'] = (dailyMap[key]!['expense'] ?? 0.0) + amount;
+        }
+      }
+    }
+
+    for (final item in data) {
+      final key = item['key'] as String;
+      item['income'] = dailyMap[key]?['income'] ?? 0.0;
+      item['expense'] = dailyMap[key]?['expense'] ?? 0.0;
+      item.remove('key');
     }
 
     return data;
@@ -100,7 +125,7 @@ class DashboardService {
     final query = await FirebaseService.firestore
         .collection('transactions')
         .where('workspaceId', isEqualTo: workspaceId)
-        .get(_server);
+        .get();
 
     final List<Map<String, dynamic>> data = List.generate(12, (index) {
       return {
@@ -112,22 +137,17 @@ class DashboardService {
     });
 
     for (final doc in query.docs) {
-      final d = doc.data();
-      final ts = d['date'];
-      DateTime? date;
-      if (ts is Timestamp) {
-        date = ts.toDate();
-      } else if (ts is String) {
-        date = DateTime.tryParse(ts);
-      }
+      final d = doc.data() as Map<String, dynamic>? ?? {};
+      final date = SafeParser.parseDateTime(d['date']);
 
-      if (date != null && date.year == year) {
+      if (date.year == year) {
         final monthIndex = date.month - 1;
         if (monthIndex >= 0 && monthIndex < 12) {
-          final amount = ((d['amount'] ?? 0) as num).toDouble();
-          if (d['type'] == 'income') {
+          final amount = SafeParser.parseDouble(d['amount']);
+          final type = d['type']?.toString();
+          if (type == 'income') {
             data[monthIndex]['income'] = (data[monthIndex]['income'] as double) + amount;
-          } else if (d['type'] == 'expense') {
+          } else if (type == 'expense') {
             data[monthIndex]['expense'] = (data[monthIndex]['expense'] as double) + amount;
           }
         }
@@ -145,7 +165,7 @@ class DashboardService {
     final query = await FirebaseService.firestore
         .collection('transactions')
         .where('workspaceId', isEqualTo: workspaceId)
-        .get(_server);
+        .get();
 
     final Map<int, Map<String, double>> yearlyTotals = {};
     for (int y = startYear; y <= currentYear; y++) {
@@ -153,21 +173,16 @@ class DashboardService {
     }
 
     for (final doc in query.docs) {
-      final d = doc.data();
-      final ts = d['date'];
-      DateTime? date;
-      if (ts is Timestamp) {
-        date = ts.toDate();
-      } else if (ts is String) {
-        date = DateTime.tryParse(ts);
-      }
+      final d = doc.data() as Map<String, dynamic>? ?? {};
+      final date = SafeParser.parseDateTime(d['date']);
 
-      if (date != null && yearlyTotals.containsKey(date.year)) {
-        final amount = ((d['amount'] ?? 0) as num).toDouble();
-        if (d['type'] == 'income') {
+      if (yearlyTotals.containsKey(date.year)) {
+        final amount = SafeParser.parseDouble(d['amount']);
+        final type = d['type']?.toString();
+        if (type == 'income') {
           yearlyTotals[date.year]!['income'] =
               (yearlyTotals[date.year]!['income'] ?? 0.0) + amount;
-        } else if (d['type'] == 'expense') {
+        } else if (type == 'expense') {
           yearlyTotals[date.year]!['expense'] =
               (yearlyTotals[date.year]!['expense'] ?? 0.0) + amount;
         }
@@ -192,7 +207,7 @@ class DashboardService {
           .where('workspaceId', isEqualTo: workspaceId)
           .orderBy('date', descending: true)
           .limit(limit)
-          .get(_server);
+          .get();
 
       return query.docs
           .map((doc) => TransactionModel.fromFirestore(doc))
@@ -201,7 +216,7 @@ class DashboardService {
       final query = await FirebaseService.firestore
           .collection('transactions')
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       final docs = query.docs
           .map((doc) => TransactionModel.fromFirestore(doc))

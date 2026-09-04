@@ -117,9 +117,7 @@ class AppProvider extends ChangeNotifier {
 
       final license = await _licenseService.getLicenseByToken(token);
       if (license == null) {
-        _isActivated = false;
-        _isExpired = false;
-        notifyListeners();
+        // If server cannot be reached or token not found right now, retain existing local activation state
         return;
       }
 
@@ -148,10 +146,15 @@ class AppProvider extends ChangeNotifier {
   void _loadCategories() {
     if (_workspaceId == null) return;
     _categorySubscription?.cancel();
-    _categorySubscription = _categoryService.getCategories(_workspaceId!).listen((categories) {
-      _categories = categories;
-      notifyListeners();
-    });
+    _categorySubscription = _categoryService.getCategories(_workspaceId!).listen(
+      (categories) {
+        _categories = categories;
+        notifyListeners();
+      },
+      onError: (e) {
+        debugPrint('Category subscription error: $e');
+      },
+    );
   }
 
   Future<void> refreshLicense() async {

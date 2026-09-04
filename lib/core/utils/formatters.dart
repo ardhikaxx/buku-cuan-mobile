@@ -1,5 +1,38 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+
+class SafeParser {
+  static double parseDouble(dynamic value, [double defaultValue = 0.0]) {
+    if (value == null) return defaultValue;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      final cleaned = value.replaceAll(RegExp(r'[^0-9.-]'), '');
+      return double.tryParse(cleaned) ?? defaultValue;
+    }
+    return defaultValue;
+  }
+
+  static DateTime parseDateTime(dynamic value, [DateTime? defaultValue]) {
+    if (value == null) return defaultValue ?? DateTime.now();
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is String) {
+      return DateTime.tryParse(value) ?? (defaultValue ?? DateTime.now());
+    }
+    return defaultValue ?? DateTime.now();
+  }
+
+  static DateTime? parseNullableDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+}
 
 class CurrencyFormatter {
   static final NumberFormat _rupiahFormat = NumberFormat.currency(

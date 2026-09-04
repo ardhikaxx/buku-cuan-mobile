@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/formatters.dart';
 
 class TransactionModel {
   final String id;
@@ -30,20 +31,20 @@ class TransactionModel {
   });
 
   factory TransactionModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return TransactionModel(
       id: doc.id,
-      workspaceId: data['workspaceId'] ?? '',
-      type: data['type'] ?? 'income',
-      amount: (data['amount'] ?? 0).toDouble(),
-      categoryId: data['categoryId'] ?? '',
-      categoryName: data['categoryName'] ?? '',
-      date: (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      description: data['description'] ?? '',
-      paymentMethod: data['paymentMethod'] ?? 'Tunai',
-      notes: data['notes'],
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      workspaceId: (data['workspaceId'] ?? '').toString(),
+      type: (data['type'] ?? 'income').toString(),
+      amount: SafeParser.parseDouble(data['amount']),
+      categoryId: (data['categoryId'] ?? '').toString(),
+      categoryName: (data['categoryName'] ?? '').toString(),
+      date: SafeParser.parseDateTime(data['date']),
+      description: (data['description'] ?? '').toString(),
+      paymentMethod: (data['paymentMethod'] ?? 'Tunai').toString(),
+      notes: data['notes']?.toString(),
+      createdAt: SafeParser.parseDateTime(data['createdAt']),
+      updatedAt: SafeParser.parseDateTime(data['updatedAt']),
     );
   }
 

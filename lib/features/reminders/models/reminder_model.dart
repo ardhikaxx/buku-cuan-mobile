@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/formatters.dart';
 
 class ReminderModel {
   final String id;
@@ -24,17 +25,17 @@ class ReminderModel {
   });
 
   factory ReminderModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return ReminderModel(
       id: doc.id,
-      workspaceId: data['workspaceId'] ?? '',
-      type: data['type'] ?? 'debt',
-      referenceId: data['referenceId'],
-      title: data['title'] ?? '',
-      amount: (data['amount'] ?? 0).toDouble(),
-      dueDate: (data['dueDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      isCompleted: data['isCompleted'] ?? false,
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      workspaceId: (data['workspaceId'] ?? '').toString(),
+      type: (data['type'] ?? 'debt').toString(),
+      referenceId: data['referenceId']?.toString(),
+      title: (data['title'] ?? '').toString(),
+      amount: SafeParser.parseDouble(data['amount']),
+      dueDate: SafeParser.parseDateTime(data['dueDate']),
+      isCompleted: data['isCompleted'] == true,
+      createdAt: SafeParser.parseDateTime(data['createdAt']),
     );
   }
 

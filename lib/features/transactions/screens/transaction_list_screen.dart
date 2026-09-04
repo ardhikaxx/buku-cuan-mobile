@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -19,12 +20,14 @@ class TransactionListScreen extends StatefulWidget {
 class _TransactionListScreenState extends State<TransactionListScreen> {
   final TransactionService _transactionService = TransactionService();
   final TextEditingController _searchController = TextEditingController();
+  StreamSubscription<List<TransactionModel>>? _subscription;
   List<TransactionModel> _allTransactions = [];
   List<TransactionModel> _filteredTransactions = [];
   bool _isLoading = true;
   bool _isSearching = false;
   String _filterType = 'all';
   String _searchQuery = '';
+  String? _lastWorkspaceId;
 
   @override
   void initState() {
@@ -33,24 +36,49 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<AppProvider>();
+    final wid = provider.workspaceId;
+    if (wid != null && wid.isNotEmpty && wid != _lastWorkspaceId) {
+      _lastWorkspaceId = wid;
+      _loadTransactions();
+    }
+  }
+
+  @override
   void dispose() {
+    _subscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _loadTransactions() {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
-    _transactionService.getTransactions(provider.workspaceId!).listen((transactions) {
-      if (mounted) {
-        setState(() {
-          _allTransactions = transactions;
-          _filteredTransactions = _applyFilterAndSearch(transactions);
-          _isLoading = false;
-        });
-      }
-    });
+    _subscription?.cancel();
+    _subscription = _transactionService.getTransactions(wid).listen(
+      (transactions) {
+        if (mounted) {
+          setState(() {
+            _allTransactions = transactions;
+            _filteredTransactions = _applyFilterAndSearch(transactions);
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (e) {
+        debugPrint('Transaction Stream Error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
   }
 
   List<TransactionModel> _applyFilterAndSearch(List<TransactionModel> all) {

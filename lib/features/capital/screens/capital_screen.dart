@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -20,9 +21,11 @@ class CapitalScreen extends StatefulWidget {
 
 class _CapitalScreenState extends State<CapitalScreen> {
   final CapitalService _capitalService = CapitalService();
+  StreamSubscription<List<CapitalModel>>? _subscription;
   List<CapitalModel> _capitals = [];
   bool _isLoading = true;
   double _totalCapital = 0;
+  String? _lastWorkspaceId;
 
   @override
   void initState() {
@@ -30,18 +33,50 @@ class _CapitalScreenState extends State<CapitalScreen> {
     _loadCapital();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<AppProvider>();
+    final wid = provider.workspaceId;
+    if (wid != null && wid.isNotEmpty && wid != _lastWorkspaceId) {
+      _lastWorkspaceId = wid;
+      _loadCapital();
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   void _loadCapital() {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
-    _capitalService.getCapital(provider.workspaceId!).listen((capitals) async {
-      final total = await _capitalService.getTotalCapital(provider.workspaceId!);
-      setState(() {
-        _capitals = capitals;
-        _totalCapital = total;
-        _isLoading = false;
-      });
-    });
+    _subscription?.cancel();
+    _subscription = _capitalService.getCapital(wid).listen(
+      (capitals) async {
+        final total = await _capitalService.getTotalCapital(wid);
+        if (mounted) {
+          setState(() {
+            _capitals = capitals;
+            _totalCapital = total;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (e) {
+        debugPrint('Capital stream error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
   }
 
   Future<void> _addCapital() async {

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/formatters.dart';
 
 enum ReceivableStatus { unpaid, partial, paid }
 
@@ -30,22 +31,28 @@ class ReceivableModel {
   });
 
   factory ReceivableModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+    final amount = SafeParser.parseDouble(data['amount']);
+    final paidAmount = SafeParser.parseDouble(data['paidAmount']);
+    final remainingAmount = data.containsKey('remainingAmount')
+        ? SafeParser.parseDouble(data['remainingAmount'])
+        : (amount - paidAmount);
+
     return ReceivableModel(
       id: doc.id,
-      workspaceId: data['workspaceId'] ?? '',
-      name: data['name'] ?? '',
-      amount: (data['amount'] ?? 0).toDouble(),
-      paidAmount: (data['paidAmount'] ?? 0).toDouble(),
-      remainingAmount: (data['remainingAmount'] ?? 0).toDouble(),
-      receivableDate: (data['receivableDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      dueDate: (data['dueDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      workspaceId: (data['workspaceId'] ?? '').toString(),
+      name: (data['name'] ?? '').toString(),
+      amount: amount,
+      paidAmount: paidAmount,
+      remainingAmount: remainingAmount,
+      receivableDate: SafeParser.parseDateTime(data['receivableDate']),
+      dueDate: SafeParser.parseDateTime(data['dueDate']),
       status: ReceivableStatus.values.firstWhere(
-        (e) => e.name == data['status'],
+        (e) => e.name == data['status']?.toString(),
         orElse: () => ReceivableStatus.unpaid,
       ),
-      description: data['description'],
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      description: data['description']?.toString(),
+      createdAt: SafeParser.parseDateTime(data['createdAt']),
     );
   }
 

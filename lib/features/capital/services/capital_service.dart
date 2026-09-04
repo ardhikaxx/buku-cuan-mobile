@@ -3,7 +3,6 @@ import '../models/capital_model.dart';
 import '../../../core/services/firebase_service.dart';
 
 class CapitalService {
-  static const _server = GetOptions(source: Source.server);
   final CollectionReference _capitalCollection =
       FirebaseService.firestore.collection('capital');
 
@@ -36,7 +35,7 @@ class CapitalService {
     try {
       final query = await _capitalCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       double total = 0;
       for (final doc in query.docs) {

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/formatters.dart';
 
 enum PackageType { monthly, lifetime }
 
@@ -30,24 +31,24 @@ class LicenseModel {
   });
 
   factory LicenseModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return LicenseModel(
       id: doc.id,
-      userId: data['userId'] ?? '',
-      workspaceId: data['workspaceId'] ?? '',
-      tokenKey: data['tokenKey'] ?? '',
+      userId: (data['userId'] ?? '').toString(),
+      workspaceId: (data['workspaceId'] ?? '').toString(),
+      tokenKey: (data['tokenKey'] ?? '').toString(),
       packageType: PackageType.values.firstWhere(
-        (e) => e.name == data['packageType'],
+        (e) => e.name == data['packageType']?.toString(),
         orElse: () => PackageType.monthly,
       ),
       status: LicenseStatus.values.firstWhere(
-        (e) => e.name == data['status'],
+        (e) => e.name == data['status']?.toString(),
         orElse: () => LicenseStatus.inactive,
       ),
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      activatedAt: (data['activatedAt'] as Timestamp?)?.toDate(),
-      expiredAt: (data['expiredAt'] as Timestamp?)?.toDate(),
-      lastValidatedAt: (data['lastValidatedAt'] as Timestamp?)?.toDate(),
+      createdAt: SafeParser.parseDateTime(data['createdAt']),
+      activatedAt: SafeParser.parseNullableDateTime(data['activatedAt']),
+      expiredAt: SafeParser.parseNullableDateTime(data['expiredAt']),
+      lastValidatedAt: SafeParser.parseNullableDateTime(data['lastValidatedAt']),
     );
   }
 

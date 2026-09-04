@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/formatters.dart';
 
 class CategoryModel {
   final String id;
@@ -16,13 +17,13 @@ class CategoryModel {
   });
 
   factory CategoryModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return CategoryModel(
       id: doc.id,
-      workspaceId: data['workspaceId'] ?? '',
-      name: data['name'] ?? '',
-      type: data['type'] ?? 'income',
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      workspaceId: (data['workspaceId'] ?? '').toString(),
+      name: (data['name'] ?? '').toString(),
+      type: (data['type'] ?? 'income').toString(),
+      createdAt: SafeParser.parseDateTime(data['createdAt']),
     );
   }
 

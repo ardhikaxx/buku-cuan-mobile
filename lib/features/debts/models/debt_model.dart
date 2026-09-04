@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/formatters.dart';
 
 enum DebtStatus { unpaid, partial, paid }
 
@@ -30,22 +31,28 @@ class DebtModel {
   });
 
   factory DebtModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+    final amount = SafeParser.parseDouble(data['amount']);
+    final paidAmount = SafeParser.parseDouble(data['paidAmount']);
+    final remainingAmount = data.containsKey('remainingAmount')
+        ? SafeParser.parseDouble(data['remainingAmount'])
+        : (amount - paidAmount);
+
     return DebtModel(
       id: doc.id,
-      workspaceId: data['workspaceId'] ?? '',
-      name: data['name'] ?? '',
-      amount: (data['amount'] ?? 0).toDouble(),
-      paidAmount: (data['paidAmount'] ?? 0).toDouble(),
-      remainingAmount: (data['remainingAmount'] ?? 0).toDouble(),
-      debtDate: (data['debtDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      dueDate: (data['dueDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      workspaceId: (data['workspaceId'] ?? '').toString(),
+      name: (data['name'] ?? '').toString(),
+      amount: amount,
+      paidAmount: paidAmount,
+      remainingAmount: remainingAmount,
+      debtDate: SafeParser.parseDateTime(data['debtDate']),
+      dueDate: SafeParser.parseDateTime(data['dueDate']),
       status: DebtStatus.values.firstWhere(
-        (e) => e.name == data['status'],
+        (e) => e.name == data['status']?.toString(),
         orElse: () => DebtStatus.unpaid,
       ),
-      description: data['description'],
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      description: data['description']?.toString(),
+      createdAt: SafeParser.parseDateTime(data['createdAt']),
     );
   }
 

@@ -12,7 +12,8 @@ class FirebaseService {
   static Future<void> initialize() async {
     await Firebase.initializeApp();
     _firestore.settings = const Settings(
-      persistenceEnabled: false,
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
   }
 

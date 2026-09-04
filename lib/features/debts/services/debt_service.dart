@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/debt_model.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/utils/formatters.dart';
 
 class DebtService {
-  static const _server = GetOptions(source: Source.server);
   final CollectionReference _debtsCollection =
       FirebaseService.firestore.collection('debts');
 
@@ -73,13 +73,17 @@ class DebtService {
     try {
       final query = await _debtsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       double total = 0;
       for (final doc in query.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        if (data['status'] != 'lunas') {
-          total += (data['remainingAmount'] ?? 0).toDouble();
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        final status = data['status']?.toString();
+        if (status != 'lunas' && status != 'paid') {
+          final remaining = data.containsKey('remainingAmount')
+              ? SafeParser.parseDouble(data['remainingAmount'])
+              : (SafeParser.parseDouble(data['amount']) - SafeParser.parseDouble(data['paidAmount']));
+          total += remaining;
         }
       }
       return total;
@@ -92,7 +96,7 @@ class DebtService {
     try {
       final query = await _debtsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       final now = DateTime.now();
       return query.docs
@@ -111,7 +115,7 @@ class DebtService {
 
       final query = await _debtsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       return query.docs
           .map((doc) => DebtModel.fromFirestore(doc))

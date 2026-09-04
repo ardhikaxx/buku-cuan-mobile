@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/receivable_model.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/utils/formatters.dart';
 
 class ReceivableService {
-  static const _server = GetOptions(source: Source.server);
   final CollectionReference _receivablesCollection =
       FirebaseService.firestore.collection('receivables');
 
@@ -73,13 +73,17 @@ class ReceivableService {
     try {
       final query = await _receivablesCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       double total = 0;
       for (final doc in query.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        if (data['status'] != 'paid') {
-          total += (data['remainingAmount'] ?? 0).toDouble();
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        final status = data['status']?.toString();
+        if (status != 'paid' && status != 'lunas') {
+          final remaining = data.containsKey('remainingAmount')
+              ? SafeParser.parseDouble(data['remainingAmount'])
+              : (SafeParser.parseDouble(data['amount']) - SafeParser.parseDouble(data['paidAmount']));
+          total += remaining;
         }
       }
       return total;
@@ -92,7 +96,7 @@ class ReceivableService {
     try {
       final query = await _receivablesCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(_server);
+          .get();
 
       final now = DateTime.now();
       return query.docs

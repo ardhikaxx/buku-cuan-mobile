@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/formatters.dart';
 
 class CapitalModel {
   final String id;
@@ -20,15 +21,15 @@ class CapitalModel {
   });
 
   factory CapitalModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return CapitalModel(
       id: doc.id,
-      workspaceId: data['workspaceId'] ?? '',
-      type: data['type'] ?? 'initial',
-      amount: (data['amount'] ?? 0).toDouble(),
-      date: (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      description: data['description'],
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      workspaceId: (data['workspaceId'] ?? '').toString(),
+      type: (data['type'] ?? 'initial').toString(),
+      amount: SafeParser.parseDouble(data['amount']),
+      date: SafeParser.parseDateTime(data['date']),
+      description: data['description']?.toString(),
+      createdAt: SafeParser.parseDateTime(data['createdAt']),
     );
   }
 

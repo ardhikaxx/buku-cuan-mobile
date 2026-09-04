@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -17,8 +18,10 @@ class ReminderScreen extends StatefulWidget {
 
 class _ReminderScreenState extends State<ReminderScreen> {
   final ReminderService _reminderService = ReminderService();
+  StreamSubscription<List<ReminderModel>>? _subscription;
   List<ReminderModel> _reminders = [];
   bool _isLoading = true;
+  String? _lastWorkspaceId;
 
   @override
   void initState() {
@@ -26,16 +29,48 @@ class _ReminderScreenState extends State<ReminderScreen> {
     _loadReminders();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<AppProvider>();
+    final wid = provider.workspaceId;
+    if (wid != null && wid.isNotEmpty && wid != _lastWorkspaceId) {
+      _lastWorkspaceId = wid;
+      _loadReminders();
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   void _loadReminders() {
     final provider = context.read<AppProvider>();
-    if (provider.workspaceId == null) return;
+    final wid = provider.workspaceId;
+    if (wid == null || wid.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
-    _reminderService.getReminders(provider.workspaceId!).listen((reminders) {
-      setState(() {
-        _reminders = reminders;
-        _isLoading = false;
-      });
-    });
+    _subscription?.cancel();
+    _subscription = _reminderService.getReminders(wid).listen(
+      (reminders) {
+        if (mounted) {
+          setState(() {
+            _reminders = reminders;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (e) {
+        debugPrint('Reminder stream error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
   }
 
   @override
