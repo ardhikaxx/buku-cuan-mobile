@@ -74,7 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadData,
@@ -113,14 +113,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           height: 46,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF0F766E), Color(0xFF14B8A6)],
+              colors: [Color(0xFF00880C), Color(0xFF00AA13)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0F766E).withValues(alpha: 0.25),
+                color: const Color(0xFF00AA13).withValues(alpha: 0.25),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -206,9 +206,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF0F766E),
-            Color(0xFF115E59),
-            Color(0xFF0D9488),
+            Color(0xFF006C0E),
+            Color(0xFF00880C),
+            Color(0xFF00AA13),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -216,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F766E).withValues(alpha: 0.35),
+            color: const Color(0xFF00AA13).withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -232,7 +232,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
+                color: Colors.white.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -244,7 +244,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.04),
+                color: Colors.white.withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -321,10 +321,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF22C55E).withValues(alpha: 0.25),
+                                color: AppColors.income.withValues(alpha: 0.3),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.arrow_downward_rounded, color: Color(0xFF86EFAC), size: 16),
+                              child: const Icon(Icons.arrow_downward_rounded, color: Colors.white, size: 16),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -363,10 +363,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                                color: AppColors.expense.withValues(alpha: 0.35),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.arrow_upward_rounded, color: Color(0xFFFCA5A5), size: 16),
+                              child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 16),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -416,7 +416,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Laba Bersih',
             amount: netProfit,
             icon: Icons.trending_up_rounded,
-            color: netProfit >= 0 ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+            color: netProfit >= 0 ? AppColors.income : AppColors.expense,
             isProfit: true,
           ),
         ),
@@ -426,7 +426,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Hutang',
             amount: totalDebt,
             icon: Icons.money_off_csred_rounded,
-            color: const Color(0xFFF59E0B),
+            color: AppColors.debt,
             onTap: () => _navigateTo(const DebtListScreen()),
           ),
         ),
@@ -436,7 +436,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Piutang',
             amount: totalReceivable,
             icon: Icons.request_quote_rounded,
-            color: const Color(0xFF2563EB),
+            color: AppColors.receivable,
             onTap: () => _navigateTo(const ReceivableListScreen()),
           ),
         ),
@@ -463,28 +463,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _ActionButton(
               icon: Icons.arrow_downward_rounded,
               label: 'Uang Masuk',
-              color: const Color(0xFF16A34A),
+              color: AppColors.income,
               onTap: () => _navigateToAddTransaction('income'),
             ),
             const SizedBox(width: 8),
             _ActionButton(
               icon: Icons.arrow_upward_rounded,
               label: 'Uang Keluar',
-              color: const Color(0xFFDC2626),
+              color: AppColors.expense,
               onTap: () => _navigateToAddTransaction('expense'),
             ),
             const SizedBox(width: 8),
             _ActionButton(
               icon: Icons.money_off_csred_rounded,
               label: 'Hutang',
-              color: const Color(0xFFD97706),
+              color: AppColors.debt,
               onTap: () => _navigateToAddDebt(),
             ),
             const SizedBox(width: 8),
             _ActionButton(
               icon: Icons.request_quote_rounded,
               label: 'Piutang',
-              color: const Color(0xFF2563EB),
+              color: AppColors.receivable,
               onTap: () => _navigateToAddReceivable(),
             ),
           ],
@@ -500,7 +500,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.02),
@@ -514,10 +514,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                      color: AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.account_balance_rounded, size: 20, color: Color(0xFF0F766E)),
+                    child: const Icon(Icons.account_balance_rounded, size: 20, color: AppColors.primary),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -560,7 +560,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -578,7 +578,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.bar_chart_rounded, size: 20, color: Color(0xFF0F766E)),
+                  Icon(Icons.bar_chart_rounded, size: 20, color: AppColors.primary),
                   SizedBox(width: 6),
                   Text(
                     'Arus Kas 7 Hari Terakhir',
@@ -597,7 +597,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF16A34A),
+                        color: AppColors.income,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -608,7 +608,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFDC2626),
+                        color: AppColors.expense,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -694,7 +694,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       barRods: [
                         BarChartRodData(
                           toY: income,
-                          color: const Color(0xFF16A34A),
+                          color: AppColors.income,
                           width: 10,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(5),
@@ -702,7 +702,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         BarChartRodData(
                           toY: expense,
-                          color: const Color(0xFFDC2626),
+                          color: AppColors.expense,
                           width: 10,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(5),
@@ -735,7 +735,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -753,7 +753,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.history_rounded, size: 20, color: Color(0xFF0F766E)),
+                  Icon(Icons.history_rounded, size: 20, color: AppColors.primary),
                   SizedBox(width: 6),
                   Text(
                     'Transaksi Terbaru',
@@ -777,14 +777,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF0F766E),
+                          color: AppColors.primary,
                         ),
                       ),
                       SizedBox(width: 2),
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 16,
-                        color: Color(0xFF0F766E),
+                        color: AppColors.primary,
                       ),
                     ],
                   ),
@@ -869,7 +869,7 @@ class _MetricCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: AppColors.border),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
@@ -921,7 +921,7 @@ class _MetricCard extends StatelessWidget {
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: isProfit
-                        ? (amount >= 0 ? const Color(0xFF16A34A) : const Color(0xFFDC2626))
+                        ? (amount >= 0 ? AppColors.income : AppColors.expense)
                         : color,
                   ),
                 ),
@@ -960,7 +960,7 @@ class _ActionButton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppColors.border),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.02),
