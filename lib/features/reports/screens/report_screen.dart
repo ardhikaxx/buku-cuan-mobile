@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../core/services/app_provider.dart';
@@ -140,7 +141,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 MaterialPageRoute(builder: (_) => const ExportScreen()),
               );
             },
-            icon: const Icon(Icons.download),
+            icon: const Icon(Iconsax.document_download),
           ),
         ],
       ),

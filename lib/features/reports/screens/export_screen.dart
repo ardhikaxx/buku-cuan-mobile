@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -57,7 +58,7 @@ class _ExportScreenState extends State<ExportScreen> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Icon(Icons.picture_as_pdf),
+                    : const Icon(Iconsax.document_text),
                 label: const Text('Export PDF'),
               ),
             ),
@@ -66,7 +67,7 @@ class _ExportScreenState extends State<ExportScreen> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: _isExporting ? null : () => _exportExcel(),
-                icon: const Icon(Icons.table_chart),
+                icon: const Icon(Iconsax.grid_5),
                 label: const Text('Export Excel'),
               ),
             ),
