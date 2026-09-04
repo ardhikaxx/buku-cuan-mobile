@@ -63,45 +63,58 @@ class DebtService {
   }
 
   Future<double> getTotalDebt(String workspaceId) async {
-    final query = await _debtsCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('status', isNotEqualTo: 'lunas')
-        .get();
+    try {
+      final query = await _debtsCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    double total = 0;
-    for (final doc in query.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      total += (data['remainingAmount'] ?? 0).toDouble();
+      double total = 0;
+      for (final doc in query.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['status'] != 'lunas') {
+          total += (data['remainingAmount'] ?? 0).toDouble();
+        }
+      }
+      return total;
+    } catch (e) {
+      return 0;
     }
-    return total;
   }
 
   Future<List<DebtModel>> getOverdueDebts(String workspaceId) async {
-    final query = await _debtsCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('status', isNotEqualTo: 'lunas')
-        .get();
+    try {
+      final query = await _debtsCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    final now = DateTime.now();
-    return query.docs
-        .map((doc) => DebtModel.fromFirestore(doc))
-        .where((debt) => debt.dueDate.isBefore(now))
-        .toList();
+      final now = DateTime.now();
+      return query.docs
+          .map((doc) => DebtModel.fromFirestore(doc))
+          .where((debt) => debt.status != DebtStatus.paid && debt.dueDate.isBefore(now))
+          .toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   Future<List<DebtModel>> getUpcomingDebts(String workspaceId, int days) async {
-    final now = DateTime.now();
-    final futureDate = now.add(Duration(days: days));
+    try {
+      final now = DateTime.now();
+      final futureDate = now.add(Duration(days: days));
 
-    final query = await _debtsCollection
-        .where('workspaceId', isEqualTo: workspaceId)
-        .where('status', isNotEqualTo: 'lunas')
-        .get();
+      final query = await _debtsCollection
+          .where('workspaceId', isEqualTo: workspaceId)
+          .get();
 
-    return query.docs
-        .map((doc) => DebtModel.fromFirestore(doc))
-        .where((debt) =>
-            debt.dueDate.isAfter(now) && debt.dueDate.isBefore(futureDate))
-        .toList();
+      return query.docs
+          .map((doc) => DebtModel.fromFirestore(doc))
+          .where((debt) =>
+              debt.status != DebtStatus.paid &&
+              debt.dueDate.isAfter(now) &&
+              debt.dueDate.isBefore(futureDate))
+          .toList();
+    } catch (e) {
+      return [];
+    }
   }
 }
