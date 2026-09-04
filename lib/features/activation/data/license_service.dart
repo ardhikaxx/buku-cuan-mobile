@@ -3,6 +3,7 @@ import '../data/license_model.dart';
 import '../../../core/services/firebase_service.dart';
 
 class LicenseService {
+  static const _server = GetOptions(source: Source.server);
   final CollectionReference _licensesCollection = FirebaseService.firestore.collection('licenses');
 
   Future<LicenseModel?> validateToken(String tokenKey) async {
@@ -10,7 +11,7 @@ class LicenseService {
       final query = await _licensesCollection
           .where('tokenKey', isEqualTo: tokenKey)
           .limit(1)
-          .get();
+          .get(_server);
 
       if (query.docs.isEmpty) return null;
 
@@ -31,7 +32,7 @@ class LicenseService {
       final query = await _licensesCollection
           .where('tokenKey', isEqualTo: tokenKey)
           .limit(1)
-          .get();
+          .get(_server);
 
       if (query.docs.isEmpty) throw Exception('Token tidak ditemukan');
 
@@ -64,7 +65,7 @@ class LicenseService {
           .where('workspaceId', isEqualTo: workspaceId)
           .where('status', isEqualTo: 'active')
           .limit(1)
-          .get();
+          .get(_server);
 
       if (query.docs.isEmpty) return null;
       return LicenseModel.fromFirestore(query.docs.first);
@@ -78,7 +79,7 @@ class LicenseService {
       final query = await _licensesCollection
           .where('tokenKey', isEqualTo: tokenKey)
           .limit(1)
-          .get();
+          .get(_server);
 
       if (query.docs.isEmpty) return null;
       return LicenseModel.fromFirestore(query.docs.first);

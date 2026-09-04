@@ -8,6 +8,7 @@ import '../../receivables/services/receivable_service.dart';
 import '../../capital/services/capital_service.dart';
 
 class DashboardService {
+  static const _server = GetOptions(source: Source.server);
   final TransactionService _transactionService = TransactionService();
   final DebtService _debtService = DebtService();
   final ReceivableService _receivableService = ReceivableService();
@@ -99,7 +100,7 @@ class DashboardService {
     final query = await FirebaseService.firestore
         .collection('transactions')
         .where('workspaceId', isEqualTo: workspaceId)
-        .get();
+        .get(_server);
 
     final List<Map<String, dynamic>> data = List.generate(12, (index) {
       return {
@@ -144,7 +145,7 @@ class DashboardService {
     final query = await FirebaseService.firestore
         .collection('transactions')
         .where('workspaceId', isEqualTo: workspaceId)
-        .get();
+        .get(_server);
 
     final Map<int, Map<String, double>> yearlyTotals = {};
     for (int y = startYear; y <= currentYear; y++) {
@@ -191,7 +192,7 @@ class DashboardService {
           .where('workspaceId', isEqualTo: workspaceId)
           .orderBy('date', descending: true)
           .limit(limit)
-          .get();
+          .get(_server);
 
       return query.docs
           .map((doc) => TransactionModel.fromFirestore(doc))
@@ -200,7 +201,7 @@ class DashboardService {
       final query = await FirebaseService.firestore
           .collection('transactions')
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       final docs = query.docs
           .map((doc) => TransactionModel.fromFirestore(doc))

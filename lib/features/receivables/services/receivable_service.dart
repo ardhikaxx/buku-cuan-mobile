@@ -3,6 +3,7 @@ import '../models/receivable_model.dart';
 import '../../../core/services/firebase_service.dart';
 
 class ReceivableService {
+  static const _server = GetOptions(source: Source.server);
   final CollectionReference _receivablesCollection =
       FirebaseService.firestore.collection('receivables');
 
@@ -72,7 +73,7 @@ class ReceivableService {
     try {
       final query = await _receivablesCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       double total = 0;
       for (final doc in query.docs) {
@@ -91,7 +92,7 @@ class ReceivableService {
     try {
       final query = await _receivablesCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       final now = DateTime.now();
       return query.docs

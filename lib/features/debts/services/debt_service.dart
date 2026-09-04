@@ -3,6 +3,7 @@ import '../models/debt_model.dart';
 import '../../../core/services/firebase_service.dart';
 
 class DebtService {
+  static const _server = GetOptions(source: Source.server);
   final CollectionReference _debtsCollection =
       FirebaseService.firestore.collection('debts');
 
@@ -72,7 +73,7 @@ class DebtService {
     try {
       final query = await _debtsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       double total = 0;
       for (final doc in query.docs) {
@@ -91,7 +92,7 @@ class DebtService {
     try {
       final query = await _debtsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       final now = DateTime.now();
       return query.docs
@@ -110,7 +111,7 @@ class DebtService {
 
       final query = await _debtsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       return query.docs
           .map((doc) => DebtModel.fromFirestore(doc))

@@ -3,6 +3,7 @@ import '../models/reminder_model.dart';
 import '../../../core/services/firebase_service.dart';
 
 class ReminderService {
+  static const _server = GetOptions(source: Source.server);
   final CollectionReference _remindersCollection =
       FirebaseService.firestore.collection('reminders');
 
@@ -59,7 +60,7 @@ class ReminderService {
     final query = await _remindersCollection
         .where('workspaceId', isEqualTo: workspaceId)
         .where('isCompleted', isEqualTo: false)
-        .get();
+        .get(_server);
 
     return query.docs
         .map((doc) => ReminderModel.fromFirestore(doc))

@@ -7,6 +7,8 @@ class TransactionService {
   final CollectionReference _transactionsCollection =
       FirebaseService.firestore.collection('transactions');
 
+  static const _server = GetOptions(source: Source.server);
+
   Future<void> addTransaction(TransactionModel transaction) async {
     await _transactionsCollection.doc(transaction.id).set(transaction.toFirestore());
   }
@@ -65,12 +67,11 @@ class TransactionService {
     });
   }
 
-  Future<double> getTotalByType(String workspaceId, String type, {dynamic source}) async {
+  Future<double> getTotalByType(String workspaceId, String type) async {
     try {
-      final options = source != null ? GetOptions(source: source) : null;
       final query = await _transactionsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get(options);
+          .get(_server);
 
       double total = 0;
       for (final doc in query.docs) {
@@ -91,7 +92,7 @@ class TransactionService {
     try {
       final query = await _transactionsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       double income = 0;
       double expense = 0;
@@ -129,7 +130,7 @@ class TransactionService {
     try {
       final query = await _transactionsCollection
           .where('workspaceId', isEqualTo: workspaceId)
-          .get();
+          .get(_server);
 
       final Map<String, double> breakdown = {};
       for (final doc in query.docs) {

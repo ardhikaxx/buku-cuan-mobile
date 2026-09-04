@@ -4,6 +4,7 @@ import '../../../core/services/firebase_service.dart';
 import '../../../core/constants/app_constants.dart';
 
 class CategoryService {
+  static const _server = GetOptions(source: Source.server);
   final CollectionReference _categoriesCollection =
       FirebaseService.firestore.collection('categories');
 
@@ -50,7 +51,7 @@ class CategoryService {
   Future<void> initializeDefaultCategories(String workspaceId) async {
     final existing = await _categoriesCollection
         .where('workspaceId', isEqualTo: workspaceId)
-        .get();
+        .get(_server);
 
     if (existing.docs.isNotEmpty) return;
 
@@ -85,7 +86,7 @@ class CategoryService {
         .where('workspaceId', isEqualTo: workspaceId)
         .where('categoryId', isEqualTo: categoryId)
         .limit(1)
-        .get();
+        .get(_server);
     return query.docs.isNotEmpty;
   }
 }
