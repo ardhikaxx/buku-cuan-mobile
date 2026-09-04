@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_provider.dart';
 import '../../../core/services/firebase_service.dart';
@@ -184,7 +185,7 @@ class _CapitalScreenState extends State<CapitalScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              c.isWithdrawal ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                              c.isWithdrawal ? Iconsax.money_send : Iconsax.money_recive,
                               color: c.isWithdrawal ? AppColors.danger : AppColors.success,
                               size: 18,
                             ),
@@ -219,7 +220,7 @@ class _CapitalScreenState extends State<CapitalScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _addCapital,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Iconsax.add, color: Colors.white),
       ),
     );
   }
